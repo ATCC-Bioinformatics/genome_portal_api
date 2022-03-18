@@ -2,108 +2,207 @@ import os
 import argparse
 from argparse import RawTextHelpFormatter
 import json
-
-def search_product(jwt,product_id,output,id_only):
+def search_product(*args):
+    if len(args) == 4:
+      jwt,product_id,output,id_only = args 
+    else:
+      print("""
+        To use search_product(), you must include your jwt, a product_id, 
+        your desired output, and a boolean id_only flag. The output may be
+        a file path, such as path/to/file.txt, or the string "return" which
+        returns the output from the function.
+        E.g., search_product(YOUR_JWT,35638,"output.txt","False") print resulting
+        metadata to file
+        E.g., search_product(YOUR_JWT,35638,"return","True") return only the assembly id
+      """)
+      return
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += " -d \'{" + "\"product_id\"" + ": \"" + product_id + "\"}\' https://genomes.atcc.org/api/genomes/search"
     result = os.popen(cmd).read()
-    if id_only:
+    if id_only == True or id_only == "True":
         data = json.loads(result)
-        if output == '-':
-            print(data[0]['id'])
+        if output == 'return':
+            # print(data[0]['id'])
+            return data[0]['id']
         else:
             with open(output,'w') as out:
                 out.write(data[0]['id'])
     else:
-        if output == '-':
-          print(json.dumps(json.loads(result),indent=1))
+        if output == 'return':
+          # print(json.dumps(json.loads(result),indent=1))
+          # return json.dumps(json.loads(result),indent=1)
+          return json.loads(result)
         else:
           with open(output,'w') as out:
             out.write(json.dumps(json.loads(result),indent=1))
 
-def search_text(jwt,text,output,id_only):
+def search_text(*args):
+    if len(args) == 4:
+      jwt,text,output,id_only = args 
+    else:
+      print("""
+        To use search_text(), you must include your jwt, a search string, 
+        your desired output, and a boolean id_only flag. The output may be
+        a file path, such as path/to/file.txt, or the string "return" which
+        returns the output from the function.
+        E.g., search_product(YOUR_JWT,"coli","output.txt","False") print resulting
+        metadata to file
+        E.g., search_product(YOUR_JWT,"asp","return","True") return list of assembly ids
+      """)
+      return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += " -d \'{" + "\"text\"" + ": \"" + text + "\"}\' https://genomes.atcc.org/api/genomes/search"
     result = os.popen(cmd).read()
-    if id_only:
+    if id_only == True or id_only == "True":
         data = json.loads(result)
-        if output == '-':
-            print(data[0]['id'])
+        ids = [e['id'] for e in data]
+        if output == 'return':
+            return ids
         else:
             with open(output,'w') as out:
-                out.write(data[0]['id'])
+                out.write(','.join(ids))
     else:
-        if output == '-':
-          print(json.dumps(json.loads(result),indent=1))
+        if output == 'return':
+          return json.loads(result)
         else:
           with open(output,'w') as out:
             out.write(json.dumps(json.loads(result),indent=1))
 
 
-def download_assembly(jwt,id,output,download_link_only,print_out_results):
+def download_assembly(*args):
+    if len(args) == 5:
+      jwt,id,output,download_link_only,print_out_results = args 
+      if download_link_only == print_out_results and download_link_only in [True,"True"]:
+        print("""
+        download_link_only and print_out_results cannot both be True or False
+        """)
+        return
+    else:
+      print("""
+        To use download_assembly(), you must include your jwt, an assembly ID, 
+        your desired output, a boolean download_link_only flag, and a boolean 
+        print_out_results flag. The output may be a file path, such as 
+        path/to/file.txt, or the string "return" which returns the output from
+        the function.
+        E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"output.txt","True","False") print assembly url to file
+        E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"return","False","True") return assembly dict 
+        E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"return","False","False") return raw json result
+      """)
+      return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
     result = os.popen(cmd).read()
     data = json.loads(result)
-    if download_link_only:
-      if output == '-':
-        print(data['url'])
+    if download_link_only == True or download_link_only == "True":
+      if output == 'return':
+        return data['url']
       else:
         with open(output,'w') as out:
           out.write(data['url'])
-    elif print_out_results:
+    elif print_out_results == True or print_out_results == "True":
       assembly = os.popen(f"curl \"{data['url']}\"").read()
-      if output == '-':
-        print(assembly)
+      if output == 'return':
+        assembly_obj = {}
+        for line in assembly.split("\n"):
+          if ">" in line:
+            header = line.strip()
+            assembly_obj[header] = ""
+          else:
+            assembly_obj[header] += line.strip()
+        return assembly_obj
       else:
         with open(output,'w') as out:
           out.write(assembly)
     else:
-        print(json.dumps(data,indent=1))
+        return data
 
-def download_annotations(jwt,id,output,download_link_only,print_out_results):
+def download_annotations(*args):
+    if len(args) == 5:
+      jwt,id,output,download_link_only,print_out_results = args 
+      if download_link_only == print_out_results and download_link_only in [True,"True"]:
+        print("""
+        download_link_only and print_out_results cannot both be True
+        """)
+        return
+    else:
+      print("""
+        To use download_annotations(), you must include your jwt, an assembly ID, 
+        your desired output, a boolean download_link_only flag, and a boolean 
+        print_out_results flag. The output may be a file path, such as 
+        path/to/file.txt, or the string "return" which returns the output from
+        the function.
+        E.g., download_annotations(YOUR_JWT,304fd1fb9a4e48ee,"output.txt","True","False") print annotation data url to file
+        E.g., download_annotations(YOUR_JWT,304fd1fb9a4e48ee,"return","False","True") return the raw genbank file
+        E.g., download_annotations(YOUR_JWT,304fd1fb9a4e48ee,"return","False","False") return the raw json result
+      """)
+      return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_annotations"
     result = os.popen(cmd).read()
     data = json.loads(result)
-    if download_link_only:
-      if output == '-':
-        print(data['url'])
+    if download_link_only == True or download_link_only == "True":
+      if output == 'return':
+        return data['url']
       else:
         with open(output,'w') as out:
           out.write(data['url'])
-    elif print_out_results:
+    elif print_out_results == True or print_out_results == "True":
         annotations = os.popen(f"curl \"{data['url']}\"").read()
-        if output == '-':
-          print(annotations)
+        if output == 'return':
+          return annotations
         else:
           with open(output,'w') as out:
             out.write(annotations)
     else:
-      if output == '-':
-        print(json.dumps(data,indent=1))
+      if output == 'return':
+        return data
       else:
         with open(output,'w') as out:
           out.write(json.dumps(data,indent=1))
 
-def download_metadata(jwt,id,output):
+def download_metadata(*args):
+    if len(args) == 3:
+      jwt,id,output = args 
+    else:
+      print("""
+        To use download_metadata(), you must include your jwt, an assembly ID, 
+        your desired output, a boolean download_link_only flag, and a boolean 
+        print_out_results flag. The output may be a file path, such as 
+        path/to/file.txt, or the string "return" which returns the output from
+        the function.
+        E.g., download_metadata(YOUR_JWT,304fd1fb9a4e48ee,"output.txt") print metadata to file
+        E.g., download_metadata(YOUR_JWT,304fd1fb9a4e48ee,"return") return metadata
+      """)
+      return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}"
     result = os.popen(cmd).read()
     data = json.loads(result)
-    if output == '-':
-      print(json.dumps(data,indent=1))
+    if output == 'return':
+      return data
     else:
       with open(output,'w') as out:
         out.write(json.dumps(data,indent=1))
 
-def download_all_genomes(jwt,page,output):
+def download_all_genomes(*args):
+    if len(args) == 3:
+      jwt,page,output = args 
+    else:
+      print("""
+        To use download_all_genomes(), you must include your jwt, a page number, 
+        and your desired output. The output may be a file path, such as 
+        path/to/file.txt, or the string "return" which returns the output from
+        the function.
+        E.g., download_all_genomes(YOUR_JWT,1,"output.txt") print page 1 of metadata to file
+        E.g., download_all_genomes(YOUR_JWT,2,"return") return page 2 of metadata
+      """)
+      return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
     result = os.popen(cmd).read()
     data = json.loads(result)
-    if output == '-':
-      print(json.dumps(data,indent=1))
+    if output == 'return':
+      return data
     else:
       with open(output,'a') as out:
         out.write(json.dumps(data,indent=1))
@@ -119,7 +218,7 @@ def main():
     parser.add_argument('-p', metavar='product_id',default='',type=str, nargs='?', required=False, help='The product ID to search for.')
     parser.add_argument('-t', metavar='text',default='',type=str, nargs='?', required=False, help='The text to search for')
     parser.add_argument('-i', metavar='text',default='',type=str, nargs='?', required=False, help='The genome id')
-    parser.add_argument('-o', metavar='text',default='-',type=str, nargs='?', required=False, help='The output file location')
+    parser.add_argument('-o', metavar='text',default='return',type=str, nargs='?', required=False, help='The output file location')
     parser.add_argument('--page_number', metavar='text',default=0,type=str, nargs='?', required=False, help='The number of pages you want to download with all_genomes, 50 results per page.\nEnter 0 (default) to download information for all genomes')
     parser.add_argument('--id_only', action='store_true', help='Return only the genome ID.')
     parser.add_argument('--download_link_only', action='store_true', help='Return only the link to download the assembly or annotations.')
@@ -133,12 +232,12 @@ def main():
             if args.id_only:
                 search_product(args.j,args.p,args.o,args.id_only)
             else:
-                search_product(args.j,args.p,args.o)
+                search_product(args.j,args.p,args.o,False)
         elif len(args.t) > 0:
             if args.id_only:
                 search_text(args.j,args.t,args.o,args.id_only)
             else:
-                search_text(args.j,args.t,args.o)
+                search_text(args.j,args.t,args.o,False)
         else:
             print(' Program to search for genomes using the OneCodex api. \
             \n You must include either a product id or text string to search for. \
@@ -148,11 +247,11 @@ def main():
             if args.download_link_only and args.print_out_results:
                 print('You may select only one of download_link_only or print_out_results.')
             elif args.download_link_only:
-                download_assembly(args.j,args.i,args.o,args.download_link_only)
+                download_assembly(args.j,args.i,args.o,args.download_link_only,False)
             elif args.print_out_results:
-                download_assembly(args.j,args.i,args.o,args.print_out_results)
+                download_assembly(args.j,args.i,args.o,False,args.print_out_results)
             else:
-                download_assembly(args.j,args.i,args.o)
+                download_assembly(args.j,args.i,args.o,False,False)
         else:
             print(' Program to download a genome assembly using the OneCodex api. \
             \n You must include a genome id, e.g., 304fd1fb9a4e48ee. \
@@ -162,11 +261,11 @@ def main():
             if args.download_link_only and args.print_out_results:
                 print('You may select only one of download_link_only or print_out_results.')
             elif args.download_link_only:
-                download_annotations(args.j,args.i,args.o,args.download_link_only)
+                download_annotations(args.j,args.i,args.o,args.download_link_only,False)
             elif args.print_out_results:
-                download_annotations(args.j,args.i,args.o,args.print_out_results)
+                download_annotations(args.j,args.i,args.o,False,args.print_out_results)
             else:
-                download_annotations(args.j,args.i,args.o)
+                download_annotations(args.j,args.i,args.o,False,False)
         else:
             print(' Program to download a genome\'s annotations using the OneCodex api. \
             \n You must include a genome id, e.g., 304fd1fb9a4e48ee. \
