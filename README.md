@@ -10,3 +10,4 @@ source env/bin/activate
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/genome_portal_api
 ```
+See the demo python notebook for detailed examples.
