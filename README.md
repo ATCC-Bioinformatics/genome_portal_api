@@ -15,7 +15,6 @@ This is a set of python scripts that can be used to access the One Codex api.
     <!-- <img align="left" width="500" src="images/copyjwt.png"> -->
     ![<img align="left" width="500" src="images/copyjwt.png"/>](images/copyjwt.png)
 
-        * *REMINDER*: the JWT expires after 15 minutes
 
 *   You need python
 ## Pip install
