@@ -120,8 +120,8 @@ def download_annotations(**kwargs):
     if download_link_only == True or download_link_only == "True":
       return data['url']
     elif download_annotations == True or download_annotations == "True":
-        annotations = os.popen(f"curl \"{data['url']}\"").read()
-        return annotations
+      annotations = os.popen(f"curl \"{data['url']}\"").read()
+      return annotations
     else:
       return data
 
