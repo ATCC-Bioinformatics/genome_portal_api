@@ -2,6 +2,7 @@ import os
 import argparse
 from argparse import RawTextHelpFormatter
 import json
+
 def search_product(**kwargs):
     if set(kwargs.keys()) == set(['jwt','product_id','id_only']):
       jwt = kwargs['jwt']
@@ -17,6 +18,7 @@ def search_product(**kwargs):
       return
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += " -d \'{" + "\"product_id\"" + ": \"" + product_id + "\"}\' https://genomes.atcc.org/api/genomes/search"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     if id_only == True or id_only == "True":
         data = json.loads(result)
@@ -39,6 +41,7 @@ def search_text(**kwargs):
       return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += " -d \'{" + "\"text\"" + ": \"" + text + "\"}\' https://genomes.atcc.org/api/genomes/search"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     if id_only == True or id_only == "True":
         data = json.loads(result)
@@ -70,6 +73,7 @@ def download_assembly(**kwargs):
       return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     data = json.loads(result)
     if download_link_only == True or download_link_only == "True":
@@ -110,6 +114,7 @@ def download_annotations(**kwargs):
       return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_annotations"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     data = json.loads(result)
     if download_link_only == True or download_link_only == "True":
@@ -133,6 +138,7 @@ def download_metadata(**kwargs):
       return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes/{id}"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     data = json.loads(result)
     return data
@@ -150,6 +156,7 @@ def download_all_genomes(*args):
       return 
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
     cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
+    cmd += " 2> /dev/null"
     result = os.popen(cmd).read()
     data = json.loads(result)
     return data
