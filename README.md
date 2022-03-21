@@ -15,7 +15,8 @@ This is a set of python scripts that can be used to access the One Codex api.
 2. See command line usage below
 # Usage
 ## Pip install usage
-TBD
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw#scrollTo=a8SCNpi8Kj5Z)
+
 # For deletion
 ## Examine metadata for all genomes 
 You must include a page number argumentcat 
