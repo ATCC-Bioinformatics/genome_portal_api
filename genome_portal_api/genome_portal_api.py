@@ -35,8 +35,8 @@ def search_text(**kwargs):
       print("""
         To use search_text(), you must include your jwt, a search string and a boolean id_only flag. If the id_only boolean is set 
         to True, then only the assembly id is retrieved.
-        E.g., search_product(jwt=YOUR_JWT,text="coli",id_only="False") return resulting metadata
-        E.g., x = search_product(jwt=YOUR_JWT,text="asp",id_only="True") return list of assembly ids
+        E.g., search_text(jwt=YOUR_JWT,text="coli",id_only="False") return resulting metadata
+        E.g., x = search_text(jwt=YOUR_JWT,text="asp",id_only="True") return list of assembly ids
       """)
       return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
