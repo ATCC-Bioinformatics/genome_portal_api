@@ -131,8 +131,7 @@ def download_metadata(**kwargs):
       id = kwargs['id']
     else:
       print("""
-        To use download_metadata(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
-        print_out_results flag. 
+        To use download_metadata(), you must include your jwt and an assembly ID.
         E.g., download_metadata(jwt=YOUR_JWT,id=304fd1fb9a4e48ee) return metadata
       """)
       return 
@@ -144,7 +143,7 @@ def download_metadata(**kwargs):
     return data
 
 
-def download_all_genomes(*args):
+def download_all_genomes(**kwargs):
     if set(kwargs.keys()) == set(["jwt","page"]):
       jwt = kwargs['jwt']
       page = kwargs['page']
