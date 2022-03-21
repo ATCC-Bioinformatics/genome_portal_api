@@ -10,10 +10,11 @@ def search_product(*args):
         To use search_product(), you must include your jwt, a product_id, 
         your desired output, and a boolean id_only flag. The output may be
         a file path, such as path/to/file.txt, or the string "return" which
-        returns the output from the function.
+        returns the output from the function. If the id_only boolean is set 
+        to True, then only the assembly id is retrieved.
         E.g., search_product(YOUR_JWT,35638,"output.txt","False") print resulting
         metadata to file
-        E.g., search_product(YOUR_JWT,35638,"return","True") return only the assembly id
+        E.g., x = search_product(YOUR_JWT,35638,"return","True") return only the assembly id
       """)
       return
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
@@ -22,15 +23,12 @@ def search_product(*args):
     if id_only == True or id_only == "True":
         data = json.loads(result)
         if output == 'return':
-            # print(data[0]['id'])
             return data[0]['id']
         else:
             with open(output,'w') as out:
                 out.write(data[0]['id'])
     else:
         if output == 'return':
-          # print(json.dumps(json.loads(result),indent=1))
-          # return json.dumps(json.loads(result),indent=1)
           return json.loads(result)
         else:
           with open(output,'w') as out:
@@ -44,10 +42,11 @@ def search_text(*args):
         To use search_text(), you must include your jwt, a search string, 
         your desired output, and a boolean id_only flag. The output may be
         a file path, such as path/to/file.txt, or the string "return" which
-        returns the output from the function.
+        returns the output from the function. If the id_only boolean is set 
+        to True, then only the assembly id is retrieved.
         E.g., search_product(YOUR_JWT,"coli","output.txt","False") print resulting
         metadata to file
-        E.g., search_product(YOUR_JWT,"asp","return","True") return list of assembly ids
+        E.g., x = search_product(YOUR_JWT,"asp","return","True") return list of assembly ids
       """)
       return  
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
@@ -83,7 +82,9 @@ def download_assembly(*args):
         your desired output, a boolean download_link_only flag, and a boolean 
         print_out_results flag. The output may be a file path, such as 
         path/to/file.txt, or the string "return" which returns the output from
-        the function.
+        the function. If the download_link_only boolean is set to True, then only 
+        the assembly download link is retrieved. If the print_out_results boolean is set to True,
+        then only the assembly download link is retrieved.
         E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"output.txt","True","False") print assembly url to file
         E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"return","False","True") return assembly dict 
         E.g., download_assembly(YOUR_JWT,304fd1fb9a4e48ee,"return","False","False") return raw json result
