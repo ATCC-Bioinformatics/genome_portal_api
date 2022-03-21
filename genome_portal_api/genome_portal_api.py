@@ -87,9 +87,9 @@ def download_assembly(**kwargs):
           assembly_obj[header] = ""
         else:
           assembly_obj[header] += line.strip()
-        return assembly_obj
+      return assembly_obj
     else:
-        return data
+      return data
 
 def download_annotations(**kwargs):
     if set(kwargs.keys()) == set(["jwt","id","download_link_only","download_annotations"]):
