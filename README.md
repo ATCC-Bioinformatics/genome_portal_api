@@ -10,7 +10,7 @@ This is a set of python scripts that can be used to access the One Codex api.
     <!-- <img align="left" width="500" src="images/profile.png"> -->
     ![<img align="left" width="500" src="images/profile.png"/>](images/profile.png)
 
-    * Click on “Copy JWT”
+    * Click on “Copy JWT” - lasts for 15 minutes before time out.
 
     <!-- <img align="left" width="500" src="images/copyjwt.png"> -->
     ![<img align="left" width="500" src="images/copyjwt.png"/>](images/copyjwt.png)
