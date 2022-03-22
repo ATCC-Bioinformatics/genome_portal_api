@@ -16,7 +16,7 @@ This is a set of python scripts that can be used to access the One Codex api.
     <img width="500" src="images/copyjwt.png">
       </p>
 
-*   All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to Jupyter Notebook available at bottom of README) using Python 3.7.
+*   All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7.
 # Pip install
 ```
 python -m venv env
