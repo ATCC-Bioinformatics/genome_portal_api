@@ -7,7 +7,7 @@ This is a set of python scripts that can be used to access the One Codex api.
     <img width="500" src="images/login.png">
       </p>
       
-    <p * Hover over your username on the home page of https://genomes.atcc.org, and select “Profile” from the list that drops down /p>
+    * Hover over your username on the home page of https://genomes.atcc.org, and select “Profile” from the list that drops down
       
     <img align="left" width="500" src="images/profile.png">
       <br>
