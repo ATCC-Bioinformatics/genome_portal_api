@@ -5,16 +5,16 @@ This is a set of python scripts that can be used to access the One Codex api.
     * Log in or create an account on https://genomes.atcc.org 
     <p align="left">
     <img width="500" src="images/login.png">
-      </p>
+     </p>
       
     * Hover over your username on the home page of https://genomes.atcc.org, and select “Profile” from the list that drops down
-      
-    <img align="left" width="500" src="images/profile.png">
-      <br>
+    <p align="left">  
+    <img width="500" src="images/profile.png">
+      </p>
     * Click on “Copy JWT” - lasts for 15 minutes before time out.
-    <br>
-    <img align="left" width="500" src="images/copyjwt.png">
-      <br>
+    <p align="left">
+    <img width="500" src="images/copyjwt.png">
+      </p>
 
 *   You need python
 # Pip install
