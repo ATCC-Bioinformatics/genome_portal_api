@@ -1,7 +1,8 @@
 # Introduction
-This is a set of python scripts that can be used to access the One Codex api.
+This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7.
 # Getting Started
-*   You will need a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
+You will need:
+* a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
     * Log in or create an account on https://genomes.atcc.org 
     <p align="left">
     <img width="500" src="images/login.png">
@@ -16,7 +17,7 @@ This is a set of python scripts that can be used to access the One Codex api.
     <img width="500" src="images/copyjwt.png">
       </p>
 
-*   All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7.
+*   Python 3.7 or higher.
 # Pip install
 ```
 python -m venv env
