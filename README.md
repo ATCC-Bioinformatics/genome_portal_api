@@ -26,3 +26,4 @@ pip install /path/to/genome_portal_api
 ```
 See the demo python notebook for detailed examples.
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
+
