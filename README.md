@@ -2,9 +2,10 @@
 This is a set of python scripts that can be used to access the One Codex api.
 # Getting Started
 *   You will need a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
-    * Log in or create an account on https://genomes.atcc.org <br>
+    * Log in or create an account on https://genomes.atcc.org 
+    <div>
     <img align="left" width="500" src="images/login.png">
-      <br>
+      </div>
     * Hover over your username on the home page of https://genomes.atcc.org, and select “Profile” from the list that drops down
       <br>
     <img align="left" width="500" src="images/profile.png">
