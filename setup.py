@@ -24,6 +24,6 @@ setup(
     keywords="core package",
     license="https://www.atcc.org/policies/product-use-policies/data-use-agreement",
     packages=["genome_portal_api"],
-    install_requires=[],
+    install_requires=["fuzzywuzzy>=0.18.0","python-Levenshtein>=0.12.2"],
     include_package_data=True,
 )
