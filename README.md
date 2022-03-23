@@ -1,5 +1,7 @@
 # Introduction
-This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7.
+This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7. See the demo python notebook for detailed examples.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
+
 # Getting Started
 You will need:
 * a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
@@ -25,5 +27,3 @@ source env/bin/activate
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/genome_portal_api
 ```
-See the demo python notebook for detailed examples.
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
