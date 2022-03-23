@@ -1,8 +1,21 @@
-# Introduction
+# Table of contents
+1. [Introduction](#introduction)
+2. [Getting Started](#getting-started)
+3. [Installation](#installation)
+4. [Functions](#functions)
+   1. [search_text](#search_text)
+   2. [search_product](#search_product)
+   3. [download_assembly](#download_assembly)
+   4. [download_annotations](#download_annotations)
+   5. [download_metadata](#download_metadata)
+   6. [download_all_genomes](#download_all_genomes)
+   7. [download_catalogue](#download_catalogue)
+   8. [search_fuzzy](#search_fuzzy)
+# Introduction <a name="introduction"></a>
 This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7. See the demo python notebook for detailed examples:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
 
-# Getting Started
+# Getting Started <a name="getting-started"></a>
 You will need:
 * a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
     * Log in or create an account on https://genomes.atcc.org 
@@ -20,15 +33,15 @@ You will need:
       </p>
 
 *   Python 3.7 or higher.
-# Pip install
+# Pip install <a name="installation"></a>
 ```
 python -m venv env
 source env/bin/activate
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/genome_portal_api
 ```
-# Functions
-### search_text()
+# Functions <a name="functions"></a>
+### search_text() <a name="search_text"></a>
 The search_text() function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string for an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
 Usage:
 ```
@@ -79,7 +92,7 @@ Output:
  ('Mycolicibacterium fortuitum subsp. fortuitum', '6841'),
  ...
 ```
-### search_product()
+### search_product() <a name="search_product"></a>
 The search_product() function is similar to the search_text() function, except it looks for assembly metadata that matches a particular product id. The product id used must be an exact match to return correct results.
 ```
 To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
@@ -115,7 +128,7 @@ product_metadata
   'product_url': 'https://www.atcc.org/Products/All/BAA-335',
   'taxon_name': 'Neisseria meningitidis'}]
 ```
-### download_assembly()
+### download_assembly() <a name="download_assembly"></a>
 The download_assembly() function uses an assembly id to either obtain the link to download an assembly, or download an assembly directly. Here, the assembly id contained in the search_product_assembly_id variable is used to retrieve the assembly download link which can be copied and pasted into any web browser: The first 200 nucleoties of each contig in the assemblies relating to the assembly ids in search_product_assembly_id variable are shown below. If neither the download_link_only or download_assembly options are set to True, the raw json result is returned.
 ```
 To use download_assembly(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
@@ -148,7 +161,7 @@ GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACG
 >4a3fc3892d33411f_2 assembly_id="4a3fc3892d33411f" genome_id="a614b8c4a4664441" atcc_catalog_number="ATCC 700822" species="Yersinia enterocolitica subsp. enterocolitica" contig_number="2" topology="linear"
 TTCAATGAATCCATTCTGCTGCGGGTTTACCCGGTTGAATATGGCACAAAGTAATACCATTATATTCACAGTAATTCAGTAAGTTAACCGATATCAGTTCCGGACCATTATCAACTCTAATTTGCTGAGGCTGTCCACGTTCTTCTTTCAGACGTTCAAGTACGCGGATCACTCTGTTTGCTGGCAAAGAAGTATCGACT
 ```
-### download_annotations()
+### download_annotations() <a name="download_annotations"></a>
 Similarly to download_assembly, an assembly id is required to be able to download assembly annotations, and it is possible to download only the annotations link rather than the full annotation. Using the assembly ids from search_product_results_assembly_id the download links are retrieved. Annotations are downloaded directly as a GenBank file.
 ```
 To use download_annotations(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
@@ -219,7 +232,7 @@ with open("annotations.gbk", "w") as f:
   for line in annotations.split("\n"):
     f.write(line+"\n")
 ```
-### download_metadata()
+### download_metadata() <a name="download_metadata"></a>
 In order to download an assembly's metadata using an assembly id when other options are not needed, i.e. links, GenBank files, etc, download_metadata() should be used. download_metadata() produces the detailed metadata for any given assembly id.
 ```
 To use download_metadata(), you must include your jwt and an assembly ID.
@@ -262,13 +275,13 @@ assembly_metadata
    ...
    ...
 ```
-### download_all_genomes() - Deprecate?
+### download_all_genomes() - Deprecate? <a name="download_all_genomes"></a>
 download_all_genomes() allows the user to download all genomes available on https://genomes.atcc.org without prior knowledge of any associated metadata.
 ```
 To use download_all_genomes(), you must include your jwt, and a page number.
 E.g., download_all_genomes(jwt=YOUR_JWT,page=1,output="output.txt") return page 1 of metadata
 ```
-### download_catalogue()
+### download_catalogue() <a name="download_catalogue"></a>
 download_catalogue() allows the user to download the entire catalogue available on https://genomes.atcc.org and either return a list of all assembly options or save the list to a pkl file. The complete catalogue can be returned from the function as a list by not including an output path. The complete catalogue can be saved to a .pkl file by including an output path. This is required to run the search_fuzzy() function.
 ```
 To use download_catalogue(), you must include your jwt.
@@ -306,7 +319,7 @@ In order to use search_fuzzy(), the catalogue must be saved to file. For example
 ```
 download_catalogue(jwt=jwt,output="path/to/catalogue.pkl")
 ```
-### search_fuzzy()
+### search_fuzzy() <a name="search_fuzzy"></a>
 search_fuzzy() allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(jwt=jwt,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
 ```
 To use search_fuzzy(), you must include a search term and the path to the catalogue
