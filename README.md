@@ -12,7 +12,7 @@
    7. [download_catalogue](#download_catalogue)
    8. [search_fuzzy](#search_fuzzy)
 # Introduction <a name="introduction"></a>
-This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab (link to notebook available at bottom of README) using Python 3.7. See the demo python notebook for detailed examples:
+This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab using Python 3.7. See the demo python notebook for detailed examples:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
 
 # Getting Started <a name="getting-started"></a>
@@ -45,10 +45,10 @@ pip install /path/to/genome_portal_api
 The `search_text()` function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string of an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
 Usage:
 ```
-To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
-id_only boolean is set to True, then only the assembly id is retrieved.
-E.g., search_product(jwt=YOUR_JWT,product_id=35638,id_only=False) return resulting metadata
-E.g., x = search_product(jwt=YOUR_JWT,product_id=35638,id_only=True) return only the assembly id
+To use search_text(), you must include your jwt, a search string and a boolean id_only flag. If the id_only boolean is set 
+to True, then only the assembly id is retrieved.
+E.g., search_text(jwt=YOUR_JWT,text="coli",id_only="False") return resulting metadata
+E.g., x = search_text(jwt=YOUR_JWT,text="asp",id_only="True") return list of assembly ids
 ```
 Example:
 ```
