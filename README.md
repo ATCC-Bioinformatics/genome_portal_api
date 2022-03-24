@@ -42,7 +42,7 @@ pip install /path/to/genome_portal_api
 ```
 # Functions <a name="functions"></a>
 ### search_text() <a name="search_text"></a>
-The search_text() function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string for an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
+The `search_text()` function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string of an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
 Usage:
 ```
 To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
@@ -93,7 +93,7 @@ Output:
  ...
 ```
 ### search_product() <a name="search_product"></a>
-The search_product() function is similar to the search_text() function, except it looks for assembly metadata that matches a particular product id. The product id used must be an exact match to return correct results.
+The `search_product()` function is similar to the search_text() function, except it looks for assemblies that match a particular product id. The product id used must be an **exact** match to return correct results.
 ```
 To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
 id_only boolean is set to True, then only the assembly id is retrieved.
@@ -129,7 +129,7 @@ product_metadata
   'taxon_name': 'Neisseria meningitidis'}]
 ```
 ### download_assembly() <a name="download_assembly"></a>
-The download_assembly() function uses an assembly id to either obtain the link to download an assembly, or download an assembly directly. Here, the assembly id contained in the search_product_assembly_id variable is used to retrieve the assembly download link which can be copied and pasted into any web browser: The first 200 nucleoties of each contig in the assemblies relating to the assembly ids in search_product_assembly_id variable are shown below. If neither the download_link_only or download_assembly options are set to True, the raw json result is returned.
+The download_assembly() function uses an assembly id to either obtain the link to download an assembly or download an assembly directly.
 ```
 To use download_assembly(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
 download_assembly flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved. 
@@ -162,7 +162,7 @@ GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACG
 TTCAATGAATCCATTCTGCTGCGGGTTTACCCGGTTGAATATGGCACAAAGTAATACCATTATATTCACAGTAATTCAGTAAGTTAACCGATATCAGTTCCGGACCATTATCAACTCTAATTTGCTGAGGCTGTCCACGTTCTTCTTTCAGACGTTCAAGTACGCGGATCACTCTGTTTGCTGGCAAAGAAGTATCGACT
 ```
 ### download_annotations() <a name="download_annotations"></a>
-Similarly to download_assembly, an assembly id is required to be able to download assembly annotations, and it is possible to download only the annotations link rather than the full annotation. Using the assembly ids from search_product_results_assembly_id the download links are retrieved. Annotations are downloaded directly as a GenBank file.
+Similar to `download_assembly()`, an assembly id is required for the `download_annotations()`, which can be used to either obtain the download link or to download the annotations directly. The annotations are in .gbk format.
 ```
 To use download_annotations(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
 download_annotations flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved.
@@ -183,10 +183,10 @@ https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-fil
 Download annotations directly example:
 ```
 annotations=download_annotations(jwt=jwt,id=search_product_results_assembly_id,download_link_only=False,download_annotations=True)
-for line in annotations.split("\n")[:35]:
+for line in annotations.split("\n"):
   print(line)
 ```
-Output:
+The output from the above code block prints each link of the .gbk file.
 ```
 LOCUS       1                    4533095 bp    DNA     linear   UNK 07-DEC-2021
 DEFINITION  Yersinia enterocolitica subsp. enterocolitica ATCC® 700822™, contig
@@ -233,7 +233,7 @@ with open("annotations.gbk", "w") as f:
     f.write(line+"\n")
 ```
 ### download_metadata() <a name="download_metadata"></a>
-In order to download an assembly's metadata using an assembly id when other options are not needed, i.e. links, GenBank files, etc, download_metadata() should be used. download_metadata() produces the detailed metadata for any given assembly id.
+`download_metadata()` should be used to obtain the detailed metadata including qc statistics, contig length(s), etc. for any given assembly id.
 ```
 To use download_metadata(), you must include your jwt and an assembly ID.
 E.g., download_metadata(jwt=YOUR_JWT,id=304fd1fb9a4e48ee) return metadata
@@ -282,7 +282,7 @@ To use download_all_genomes(), you must include your jwt, and a page number.
 E.g., download_all_genomes(jwt=YOUR_JWT,page=1,output="output.txt") return page 1 of metadata
 ```
 ### download_catalogue() <a name="download_catalogue"></a>
-download_catalogue() allows the user to download the entire catalogue available on https://genomes.atcc.org and either return a list of all assembly options or save the list to a pkl file. The complete catalogue can be returned from the function as a list by not including an output path. The complete catalogue can be saved to a .pkl file by including an output path. This is required to run the search_fuzzy() function.
+`download_catalogue()` allows the user to download the entire catalogue available on https://genomes.atcc.org and either return a list of all assembly metadata or save the list to a pkl file. The complete catalogue can be returned from the function as a list by not including an output path. The complete catalogue can be saved to a .pkl file by including an output path. **Saving to file is required to run the search_fuzzy() function**.
 ```
 To use download_catalogue(), you must include your jwt.
 E.g., download_catalogue(jwt=YOUR_JWT,output="output.txt")
@@ -320,7 +320,7 @@ In order to use search_fuzzy(), the catalogue must be saved to file. For example
 download_catalogue(jwt=jwt,output="path/to/catalogue.pkl")
 ```
 ### search_fuzzy() <a name="search_fuzzy"></a>
-search_fuzzy() allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(jwt=jwt,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
+`search_fuzzy()` allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(jwt=jwt,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
 ```
 To use search_fuzzy(), you must include a search term and the path to the catalogue
 downloaded via download_catalogue().
