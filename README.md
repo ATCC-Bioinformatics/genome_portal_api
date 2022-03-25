@@ -11,6 +11,11 @@
    6. [download_all_genomes](#download_all_genomes)
    7. [download_catalogue](#download_catalogue)
    8. [search_fuzzy](#search_fuzzy)
+5. [Cookbook](#cookbook)
+   1. [Download all the data for all *E. coli* assemblies](#ex1)
+   2. [Download all the data for product 700822](#ex2)
+   3. [Download all data for fuzzy search results](#ex3)
+
 # Introduction <a name="introduction"></a>
 This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab using Python 3.7. See the demo python notebook for detailed examples:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1feU-VVZzTFrfvRA63KK0NeKRMrAcqxMw?usp=sharing)
@@ -341,4 +346,161 @@ match_list=search_fuzzy(term="yursinia",catalogue_path="path/to/catalogue.pkl")
  'Yersinia pseudotuberculosis',
  'Yersinia pestis',
  ...
+```
+# Cookbook <a name="cookbook"></a>
+## Download all the data for all *E. coli* assemblies <a name="ex1"></a>
+First, we search for Escherichia coli using `search_text()`. Then we iterate through the results list, create a dictionary entry for each assembly, and then download and store the assembly, annotations, and metadata. The first 3 assemblies are downloaded below.
+```
+search_text_results=search_text(jwt=jwt,text="Escherichia coli",id_only=False)
+e_coli_data = {}
+# Download assembly, annotations, and metadata for first 5 
+for e in search_text_results[:3]:
+  id = e['id']
+  e_coli_data[id] = {}
+  e_coli_data[id]["assembly"] = download_assembly(jwt=jwt,id=e['id'],download_link_only=False,download_assembly=True)
+  e_coli_data[id]["annotations"] = download_annotations(jwt=jwt,id=e['id'],download_link_only=False,download_annotations=True)
+  e_coli_data[id]["metadata"] = download_metadata(jwt=jwt,id=e['id'])
+ ```
+ ```
+ for id in e_coli_data.keys():
+  print("First 150 nts of each contig")
+  for contig in e_coli_data[id]["assembly"].keys():
+    print(contig)
+    print(e_coli_data[id]["assembly"][contig][0:150])
+  print("\nFirst 10 lines of the annotation data:")
+  for line in e_coli_data[id]["annotations"].split("\n")[:10]:
+    print(line)
+  print("\nSome example metadata:")
+  print("contig_lengths:",e_coli_data[id]["metadata"]["primary_assembly"]["attributes"]["contig_lengths"])
+  print("checkm_results:",e_coli_data[id]["metadata"]["primary_assembly"]["attributes"]["qc_statistics"]["checkm_results"])
+  break
+```
+Output:
+```
+First 150 nts of each contig
+>8ee16eff570c4cef_1 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="1" topology="linear"
+TTGGCGCATTAAAACCTGGCGCACGCCTGATTACTAAAAATCTGGCGGAGCAATTAGGTATGAGTATTACACCTGTGCGTGAAGCATTATTACGTCTGGTTTCGGTGAATGCGCTTTCTGTCGCACCTGCACAAGCATTTACAGTTCCGG
+>8ee16eff570c4cef_2 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="2" topology="linear"
+TACTAAGCTGATGTTTCAGGTCGTTCTCAACCTGCAGAGTCAAACTGACATGTTTCATTTTTCCCGTTCCAGGCATTTTAATTCCTTCGCGTGTTTTCTGTCCAACCCTGCCTGCATGGCAGAAGGAATTCACCTGGTGTATTAAAGTGA
+>8ee16eff570c4cef_3 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="3" topology="linear"
+TCGGCAAAGGAGCCATGGATTCTAGCAACTAACTTACCTGTTGAAATTCGAACACCCAAACAACTTGTTAATATCTATTCGAAGCGAATGCAGATTGAAGAAACCTTCCGAGACTTGAAAAGTCCTGCCTACGGACTAGGCCTACGCCAT
+>8ee16eff570c4cef_4 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="4" topology="linear"
+CGCTGAGTAGATTTTAGGTGACGGGTGGTGACAATGAGTCCGTGTCGAGCGCTGATTTTTTCGGCCTTTAGAGCGAGATTTATACAATAGAATTTGGCATGAGATTGGATTGCTTTTAGTCAGCCTCTTATAGCCTAAAGTCTTTGAGTG
+>8ee16eff570c4cef_5 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="5" topology="linear"
+TTACTTGACTGTAAAACTCTCACTCTTACCGAACTTGGCCGTAACCTGCCAACCAAAGCGAGAACAAAACATAACATCAAACGAATCGACCGATTGTTAGGTAATCGTCACCTCCACAAAGAGCGACTCGCTGTATACCGTTGGCATGCT
+>8ee16eff570c4cef_6 assembly_id="8ee16eff570c4cef" genome_id="aa07e8781d624001" atcc_catalog_number="ATCC BAA-525" species="Escherichia coli" contig_number="6" topology="linear"
+GAGAGTCGTGTAAAATATCGAGTTCGCACATTTTGTTGTCTGATTATTGATTTTTGGCGAAACCATTTGATCATATGACAAGATGTGTATCTACCTTAACTTAATGATTTTGATAAAAATCATTAGGGGATTCATCAG
+
+First 10 lines of the annotation data:
+LOCUS       1                    4631769 bp    DNA     linear   UNK 12-AUG-2021
+DEFINITION  Escherichia coli ATCC® BAA-525™, contig 1.
+ACCESSION   assembly_8ee16eff570c4cef_1
+VERSION     assembly_8ee16eff570c4cef_1
+DBLINK      assembly: 8ee16eff570c4cef
+            annotation_set: bda19b71c6d7400c
+            genome: aa07e8781d624001
+KEYWORDS    .
+SOURCE      https://genomes.atcc.org/genomes/aa07e8781d624001
+  ORGANISM  Escherichia coli
+
+Some example metadata:
+contig_lengths: [4631769, 31262, 445, 413, 206, 138]
+checkm_results: {'completeness': 99.96693121693121, 'contamination': 0.03720238095238095}
+```
+## Download all the data for product 700822 <a name="ex2"></a2
+First, we use `search_product` to download the assembly metadata from which we pull out the assembly id. Then, we download the assembly, annotations, and metadata.
+```
+search_products_results=search_product(jwt=jwt,product_id="700822",id_only=False)
+id = search_products_results[0]['id']
+assembly=download_assembly(jwt=jwt,id=id,download_link_only=False,download_assembly=True)
+annotations=download_annotations(jwt=jwt,id=id,download_link_only=False,download_annotations=True)
+metadata=download_metadata(jwt=jwt,id=id)
+```
+```
+print("First 150 nts of each contig")
+for contig in assembly.keys():
+  print(contig)
+  print(assembly[contig][0:150])
+print("\nFirst 10 lines of the annotation data:")
+for line in annotations.split("\n")[:10]:
+  print(line)
+print("\nSome example metadata:")
+print("Filtered contig N50 value:",metadata["primary_assembly"]["attributes"]["qc_statistics"]["assembly_statistics"]["filtered"]["n50"])
+print("Filtered contig GC content:",metadata["primary_assembly"]["attributes"]["qc_statistics"]["assembly_statistics"]["filtered"]["gc_content"])
+print("Illumina data:",metadata["primary_assembly"]["attributes"]["qc_statistics"]["sequencing_statistics"]["illumina"]["depth"])
+print("ONT data:",metadata["primary_assembly"]["attributes"]["qc_statistics"]["sequencing_statistics"]["ont"]["reads"])
+```
+Output:
+```
+First 150 nts of each contig
+>4a3fc3892d33411f_1 assembly_id="4a3fc3892d33411f" genome_id="a614b8c4a4664441" atcc_catalog_number="ATCC 700822" species="Yersinia enterocolitica subsp. enterocolitica" contig_number="1" topology="circular"
+GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACGCCCCTTACAGGCGGAACTGAGTGACAATACTCTGGCGCTTTACGCACCTAATCGTTTTGTACTGGACTGG
+>4a3fc3892d33411f_2 assembly_id="4a3fc3892d33411f" genome_id="a614b8c4a4664441" atcc_catalog_number="ATCC 700822" species="Yersinia enterocolitica subsp. enterocolitica" contig_number="2" topology="linear"
+TTCAATGAATCCATTCTGCTGCGGGTTTACCCGGTTGAATATGGCACAAAGTAATACCATTATATTCACAGTAATTCAGTAAGTTAACCGATATCAGTTCCGGACCATTATCAACTCTAATTTGCTGAGGCTGTCCACGTTCTTCTTTCA
+
+First 10 lines of the annotation data:
+LOCUS       1                    4533095 bp    DNA     linear   UNK 07-DEC-2021
+DEFINITION  Yersinia enterocolitica subsp. enterocolitica ATCC® 700822™, contig
+            1.
+ACCESSION   assembly_4a3fc3892d33411f_1
+VERSION     assembly_4a3fc3892d33411f_1
+DBLINK      assembly: 4a3fc3892d33411f
+            annotation_set: 0518695e1d044c30
+            genome: a614b8c4a4664441
+KEYWORDS    .
+SOURCE      https://genomes.atcc.org/genomes/a614b8c4a4664441
+
+Some example metadata:
+Filtered contig N50 value: 4533095
+Filtered contig GC content: 0.46992943761839084
+Illumina data: {'max': 1154, 'mean': 303.12891886668774, 'median': 304.0, 'min': 12, 'stdev': 43.0585172469467}
+ONT data: {'N50': 30777, 'ambiguous_bases': 0, 'median_quality': 25, 'median_quantized_percent_gc': 40, 'median_read_length': 9478, 'position_specific_quality_scores': {}, 'quantized_percent_gc_histogram': {'20': 49, '30': 2514, '40': 66891, '50': 8085, '60': 12}, 'total_bases': 1255401398, 'total_gc_bases': 589992714, 'total_reads': 77551}
+```
+## Download all data for fuzzy search results <a name="ex3"></a>
+First, we use `search_fuzzy` to download the assembly metadata for all items that fuzzy match "yersinia." Then, we pull out the assembly id for each and download the assembly, annotations, and metadata.
+```
+match_list=search_fuzzy(term="yersinia",catalogue_path="catalogue.pkl")
+yersinia_data = {}
+for e in match_list[:3]:
+  id = e['id']
+  yersinia_data[id] = {}
+  yersinia_data[id]["assembly"] = download_assembly(jwt=jwt,id=e['id'],download_link_only=False,download_assembly=True)
+  yersinia_data[id]["annotations"] = download_annotations(jwt=jwt,id=e['id'],download_link_only=False,download_annotations=True)
+  yersinia_data[id]["metadata"] = download_metadata(jwt=jwt,id=e['id'])
+```
+```
+for id in yersinia_data.keys():
+  print("First 150 nts of each contig")
+  for contig in yersinia_data[id]["assembly"].keys():
+    print(contig)
+    print(yersinia_data[id]["assembly"][contig][0:150])
+  print("\nFirst 10 lines of the annotation data:")
+  for line in yersinia_data[id]["annotations"].split("\n")[:10]:
+    print(line)
+  print("\nSome example metadata:")
+  print("taxon:",yersinia_data[id]["metadata"]["taxon"])
+  break
+```
+Output:
+```
+First 150 nts of each contig
+>02048bb2e6674f9c_1 assembly_id="02048bb2e6674f9c" genome_id="099e5acebc284d19" atcc_catalog_number="ATCC 27729" species="Yersinia enterocolitica" contig_number="1" topology="circular"
+GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACGCCCCTTACAGGCGGAACTGAGTGACAATACTCTGGCGCTTTACGCACCTAATCGTTTTGTACTGGACTGG
+>02048bb2e6674f9c_2 assembly_id="02048bb2e6674f9c" genome_id="099e5acebc284d19" atcc_catalog_number="ATCC 27729" species="Yersinia enterocolitica" contig_number="2" topology="circular"
+GTGGATAAGCAGAAATTCTCTAATTTTTCTAAAGATCATTCTTGGGAAGATATTGATTTTGAAGCACTAGAACGAGCTTCAATCGAATATTTTCAAGAACAGACTTCTTTCGATACATCCAAAACTGAAAAGAAAAGAACGCTTCGGAAA
+
+First 10 lines of the annotation data:
+LOCUS       1                    4551126 bp    DNA     linear   UNK 19-SEP-2019
+DEFINITION  Yersinia enterocolitica ATCC® 27729™, contig 1.
+ACCESSION   assembly_02048bb2e6674f9c_1
+VERSION     assembly_02048bb2e6674f9c_1
+DBLINK      assembly: 02048bb2e6674f9c
+            annotation_set: 4d8f7c47c7c44494
+            genome: 099e5acebc284d19
+KEYWORDS    .
+SOURCE      https://genomes.atcc.org/genomes/099e5acebc284d19
+  ORGANISM  Yersinia enterocolitica
+
+Some example metadata:
+taxon: {'name': 'Yersinia enterocolitica', 'parents': [{'name': 'Yersinia', 'rank': 'genus', 'tax_id': 629}, {'name': 'Yersiniaceae', 'rank': 'family', 'tax_id': 1903411}, {'name': 'Enterobacterales', 'rank': 'order', 'tax_id': 91347}, {'name': 'Gammaproteobacteria', 'rank': 'class', 'tax_id': 1236}, {'name': 'Proteobacteria', 'rank': 'phylum', 'tax_id': 1224}, {'name': 'Bacteria', 'rank': 'superkingdom', 'tax_id': 2}, {'name': 'cellular organisms', 'rank': 'no rank', 'tax_id': 131567}], 'rank': 'species', 'tax_id': 630}
 ```
