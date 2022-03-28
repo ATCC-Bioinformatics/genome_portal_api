@@ -95,10 +95,11 @@ def search_text(**kwargs):
   #   logger.warning(print(zvr))
   except ValueError:
     logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
-  # except emptyResultsError:
-  #   logger.warning(print("Your search for ", text, " returned zero results. \
-  #   This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
-  #   Check your spelling and try again."))
+  except emptyResultsError:
+    # logger.warning(print("Your search for ", text, " returned zero results. \
+    # print("Your search for ", text, " returned zero results. \
+    # This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
+    # Check your spelling and try again.") #)
 
 def download_assembly(**kwargs):
   if set(kwargs.keys()) == set(["jwt","id","download_link_only","download_assembly"]):
