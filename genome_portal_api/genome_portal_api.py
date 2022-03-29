@@ -11,16 +11,12 @@ logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-stream_handler = logging.StreamHandler() # doesn't take any arguments, don't need a level b/c default is debug
+stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
 stream_handler.setFormatter(formatter)
 
 logger.addHandler(stream_handler)
 
-# # class errors(Exception):
-# #   pass
-
-# # class ZeroValueReturned(errors):
 class emptyResultsError(Exception):
   def __init__(self, message):
     self.message = message
@@ -60,13 +56,6 @@ def search_product(**kwargs):
           raise emptyResultsError(message)
         else:
           return data
-    # if data == []:
-    #   logger.warning("Your search returned zero results. \
-    #     This function uses exact string matching on ATCC catalog numbers. \
-    #     Check your spelling and try again. If you continue to have issues, \
-    #     try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org.")
-      # raise ZeroValueReturned
-  # except ZeroValueReturned:
   except emptyResultsError as ere:
     logger.warning(ere)
   except ValueError:
@@ -107,30 +96,10 @@ def search_text(**kwargs):
           raise emptyResultsError(message)
         else:
           return data
-    # if len(data) > 0:
-      # logger.warning("Your search returned zero results. \
-      #   This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
-      #   Check your spelling and try again. If you continue to have issues, \
-      #   try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org.")
-      # raise emptyResultsError("Your search returned zero results. \
-      #   This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
-      #   Check your spelling and try again. If you continue to have issues, \
-      #   try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org.")
-    #   ("Your search for ", text, " returned zero results. \
-    # This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
-    # Check your spelling and try again.")
-  # except emptyResultsError as ere:
-    # logger.warning(ere)
-    # print(ere)
   except emptyResultsError as ere:
     logger.warning(ere)
   except ValueError:
     logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
-  # except emptyResultsError:
-    # logger.warning(print("Your search for ", text, " returned zero results. \
-    # print("Your search for ", text, " returned zero results. \
-    # This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
-    # Check your spelling and try again.") #)
 
 def download_assembly(**kwargs):
   if set(kwargs.keys()) == set(["jwt","id","download_link_only","download_assembly"]):
@@ -139,9 +108,6 @@ def download_assembly(**kwargs):
     download_link_only = kwargs['download_link_only']
     download_assembly = kwargs['download_assembly']
     if download_link_only == download_assembly and download_link_only in [True,"True"]:
-        # print("""
-        # download_link_only and download_assembly cannot both be True
-        # """)
         logger.warning("download_link_only and download_assembly cannot both be True")
         return
   else:
@@ -155,38 +121,30 @@ def download_assembly(**kwargs):
     """)
     return  
 
-  message="Your search returned zero results. This function uses exact string matching to the hexidecimal string used for assembly identification. \
-  The hexidecimal assembly id can be obtained using search_text(), search_product(), or search_fuzzy(). Check your spelling and try again."
+  message="Either the JWT has timed out, or the assembly ID was entered incorrectly. Retrieve updated JWT from https://genomes.atcc.org and/or re-enter assembly ID."
 
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
   cmd += " 2> /dev/null"
-  result = os.popen(cmd).read()
-  try:  
+  try:
+    result = os.popen(cmd).read()
     data = json.loads(result)
-    if data == []:
-      raise emptyResultsError(message)
+    if download_link_only == True or download_link_only == "True":
+      return data['url']
+    elif download_assembly == True or download_assembly == "True":
+      assembly = os.popen(f"curl \"{data['url']}\"").read()
+      assembly_obj = {}
+      for line in assembly.split("\n"):
+        if ">" in line:
+          header = line.strip()
+          assembly_obj[header] = ""
+        else:
+          assembly_obj[header] += line.strip()
+      return assembly_obj
     else:
-      if download_link_only == True or download_link_only == "True":
-        return data['url']
-      elif download_assembly == True or download_assembly == "True":
-        assembly = os.popen(f"curl \"{data['url']}\"").read()
-        assembly_obj = {}
-        for line in assembly.split("\n"):
-          if ">" in line:
-            header = line.strip()
-            assembly_obj[header] = ""
-          else:
-            assembly_obj[header] += line.strip()
-        return assembly_obj
-      else:
-        return data
-    # if data == []:
-    #   logger.warning()
-  except emptyResultsError as ere:
-    logger.warning(ere)
+      return data
   except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
+    logger.warning(message)
 
 
 def download_annotations(**kwargs):
@@ -196,9 +154,6 @@ def download_annotations(**kwargs):
     download_link_only = kwargs['download_link_only']
     download_annotations = kwargs['download_annotations']
     if download_link_only == download_annotations and download_link_only in [True,"True"]:
-        # print("""
-        # download_link_only and download_annotations cannot both be True
-        # """)
         logger.warning("download_link_only and download_assembly cannot both be True")
         return
   else:
@@ -212,30 +167,29 @@ def download_annotations(**kwargs):
     """)
     return 
 
-  message="Your search returned zero results. This function uses exact string matching to the hexidecimal string used for assembly identification. \
-  The hexidecimal assembly id can be obtained using search_text(), search_product(), or search_fuzzy(). Check your spelling and try again."
+  message="Either the JWT has timed out, or the assembly ID was entered incorrectly. Retrieve updated JWT from https://genomes.atcc.org and/or re-enter assembly ID."
 
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_annotations"
   cmd += " 2> /dev/null"
   try:
     result = os.popen(cmd).read()
-    return result
+      # if "<!DOCTYPE html>" in result:
+      #   raise emptyResultsError(message)
+      # else:
     data = json.loads(result)
-    if result == [] or data == []:
-      raise emptyResultsError(message)
+    if download_link_only == True or download_link_only == "True":
+      return data['url']
+    elif download_annotations == True or download_annotations == "True":
+      annotations = os.popen(f"curl \"{data['url']}\"").read()
+      return annotations
     else:
-      if download_link_only == True or download_link_only == "True":
-        return data['url']
-      elif download_annotations == True or download_annotations == "True":
-        annotations = os.popen(f"curl \"{data['url']}\"").read()
-        return annotations
-      else:
-        return data
-  except emptyResultsError as ere:
-    logger.warning(ere)
+      return data
+  # except emptyResultsError as ere:
+  #   logger.warning(ere)
   except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
+    logger.warning(message)
+
 
 def download_metadata(**kwargs):
   if set(kwargs.keys()) == set(["jwt","id"]):
@@ -248,18 +202,18 @@ def download_metadata(**kwargs):
     """)
     return 
 
-  message="Your search returned zero results. This function uses exact string matching to the hexidecimal string used for assembly identification. \
+  message="Your search returned an error. This function uses exact string matching to the hexidecimal string used for assembly identification. \
   The hexidecimal assembly id can be obtained using search_text(), search_product(), or search_fuzzy(). Check your spelling and try again."
 
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}"
   cmd += " 2> /dev/null"
-  result = os.popen(cmd).read()
   try:
-    data = json.loads(result)
-    if data == []:
+    result = os.popen(cmd).read()
+    if "Not found." in result:
       raise emptyResultsError(message)
     else:
+      data = json.loads(result)
       return data
   except emptyResultsError as ere:
     logger.warning(ere)  
@@ -277,13 +231,24 @@ def download_all_genomes(**kwargs):
       E.g., download_all_genomes(jwt=YOUR_JWT,page=1,output="output.txt") return page 1 of metadata
     """)
     return 
+  message="Your search returned zero results. Double check that the page you are searching for exists, and try again."
+  message2="Your search returned an error. Double check that the page you are searching for exists, and try again."
+
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
   cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
   cmd += " 2> /dev/null"
-  result = os.popen(cmd).read()
   try:
-    data = json.loads(result)
-    return data
+    result = os.popen(cmd).read()
+    if "errors" in result:
+      raise emptyResultsError(message2)
+    else:
+      data = json.loads(result)
+      if data == [] or result == []:
+        raise emptyResultsError(message)
+      else:
+        return data
+  except emptyResultsError as ere:
+    logger.warning(ere)  
   except ValueError:
     logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
 
@@ -353,28 +318,24 @@ def search_fuzzy(**kwargs):
       E.g., search_fuzzy(term="coly",catalogue_path="catalogue.txt") search for the term "coly"
     """)
     return 
-  try:
-    catalogue = pkl.load(open(catalogue_path,"rb"))
-  except FileNotFoundError:
-    logger.warning("No such file or directory: ", catalogue_path, ". The full path to the catalogue dowloaded with download_catalogue() must be provided")
-  else:
+  catalogue = pkl.load(open(catalogue_path,"rb"))
     ##### In progress
-    items_to_return = []
-    for item in catalogue:
-      fuzzy_match = False
-      search_list = []
-      returnflatlist(search_list,item)
-      for value in search_list:
-        if value is not None:
-          value = str(value).lower()
-          if len(str(value)) > len(term):
-            for i in range(len(value)-len(term)):
-              if fuzz.ratio(value[i:i+len(term)],term) > fuzz_value:
-                fuzzy_match = True
-          elif fuzz.ratio(value,term) > fuzz_value:
-            fuzzy_match = True
-      if fuzzy_match == True:
-        items_to_return.append(item)
-    return items_to_return 
+  items_to_return = []
+  for item in catalogue:
+    fuzzy_match = False
+    search_list = []
+    returnflatlist(search_list,item)
+    for value in search_list:
+      if value is not None:
+        value = str(value).lower()
+        if len(str(value)) > len(term):
+          for i in range(len(value)-len(term)):
+            if fuzz.ratio(value[i:i+len(term)],term) > fuzz_value:
+              fuzzy_match = True
+        elif fuzz.ratio(value,term) > fuzz_value:
+          fuzzy_match = True
+    if fuzzy_match == True:
+      items_to_return.append(item)
+  return items_to_return 
 
 ### Create test function
