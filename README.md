@@ -407,7 +407,7 @@ Some example metadata:
 contig_lengths: [4631769, 31262, 445, 413, 206, 138]
 checkm_results: {'completeness': 99.96693121693121, 'contamination': 0.03720238095238095}
 ```
-## Download all the data for product 700822 <a name="ex2"></a2
+## Download all the data for product 700822 <a name="ex2"></a>
 First, we use `search_product` to download the assembly metadata from which we pull out the assembly id. Then, we download the assembly, annotations, and metadata.
 ```
 search_products_results=search_product(jwt=jwt,product_id="700822",id_only=False)
