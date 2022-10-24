@@ -281,15 +281,17 @@ def download_catalogue(**kwargs):
       data = json.loads(result)
       if data == []:
         empty_result=True
+        if output == False:
+          return all_data
+        else:
+          with open(output, 'wb') as file:
+            pkl.dump(all_data, file)
+        message = 'End of catalogue data at {0}'.format(page)
         raise emptyResultsError(message)
       else:
         all_data += data
         page+=1
-    if output == False:
-      return all_data
-    else:
-      with open(output, 'wb') as file:
-        pkl.dump(all_data, file)
+
   except emptyResultsError as ere:
     logger.info(ere)  
   except ValueError:
