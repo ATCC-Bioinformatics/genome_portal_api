@@ -22,13 +22,10 @@ This is a set of python scripts that can be used to access the One Codex api. Al
 
 # Getting Started <a name="getting-started"></a>
 You will need:
-* a One Codex account at https://genomes.atcc.org/ to obtain a JWT. This is required for all scripts.
+* a One Codex account at https://genomes.atcc.org/ to obtain an API Key. This is required for all scripts.
     * Log in or create an account on https://genomes.atcc.org       
     * Proceed to https://genomes.atcc.org/profile 
-    * Click on “Copy JWT” - lasts for 15 minutes before time out.
-    <p align="left">
-    <img width="500" src="images/copyjwt.png">
-      </p>
+    * Click on “Copy API Key”
 
 *   Python 3.7 or higher.
 # Pip install <a name="installation"></a>
@@ -43,14 +40,14 @@ pip install /path/to/genome_portal_api
 The `search_text()` function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string of an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
 Usage:
 ```
-To use search_text(), you must include your jwt, a search string and a boolean id_only flag. If the id_only boolean is set 
+To use search_text(), you must include your api key, a search string and a boolean id_only flag. If the id_only boolean is set 
 to True, then only the assembly id is retrieved.
-E.g., search_text(jwt=YOUR_JWT,text="coli",id_only="False") return resulting metadata
-E.g., x = search_text(jwt=YOUR_JWT,text="asp",id_only="True") return list of assembly ids
+E.g., search_text(api_key=YOUR_API_KEY,text="coli",id_only="False") return resulting metadata
+E.g., x = search_text(api_key=YOUR_API_KEY,text="asp",id_only="True") return list of assembly ids
 ```
 Example:
 ```
-search_text_results=search_text(jwt=jwt,text="coli",id_only=False)
+search_text_results=search_text(api_key=api_key,text="coli",id_only=False)
 ```
 `search_text_results` is a list of dictionary objects. The first element is:
 ```
@@ -93,14 +90,14 @@ Output:
 ### search_product() <a name="search_product"></a>
 The `search_product()` function is similar to the search_text() function, except it looks for assemblies that match a particular product id. The product id used must be an **exact** match to return correct results.
 ```
-To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
+To use search_product(), you must include your api_key, a product_id, and a boolean id_only flag. If the 
 id_only boolean is set to True, then only the assembly id is retrieved.
-E.g., search_product(jwt=YOUR_JWT,product_id=35638,id_only=False) return resulting metadata
-E.g., x = search_product(jwt=YOUR_JWT,product_id=35638,id_only=True) return only the assembly id
+E.g., search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=False) return resulting metadata
+E.g., x = search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=True) return only the assembly id
 ```
 Example:
 ```
-product_metadata = search_product(jwt=jwt,product_id="BAA-335", id_only=False)
+product_metadata = search_product(api_key=api_key,product_id="BAA-335", id_only=False)
 product_metadata
 ```
 `product_metadata`  holds the following dictionary:
@@ -129,16 +126,16 @@ product_metadata
 ### download_assembly() <a name="download_assembly"></a>
 The download_assembly() function uses an assembly id to either obtain the link to download an assembly or download an assembly directly.
 ```
-To use download_assembly(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
+To use download_assembly(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
 download_assembly flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved. 
 If the download_assembly boolean is set to True, then only the assembly download link is retrieved.
-E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
-E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
-E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
+E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
+E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
+E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
 ```
 Download link example:
 ```
-assembly_download_link=download_assembly(jwt=jwt,id=search_product_results_assembly_id,download_link_only=True,download_assembly=False)
+assembly_download_link=download_assembly(api_key=api_key,id=search_product_results_assembly_id,download_link_only=True,download_assembly=False)
 assembly_download_link
 ```
 `assembly_download_link` is the url to access in order to download the assembly:
@@ -147,7 +144,7 @@ https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-fil
 ```
 Download assembly example:
 ```
-assembly=download_assembly(jwt=jwt,id=search_product_results_assembly_id,download_link_only=False,download_assembly=True)
+assembly=download_assembly(api_key=api_key,id=search_product_results_assembly_id,download_link_only=False,download_assembly=True)
 for contig in assembly:
   print(contig)
   print(assembly[contig][0:200])
@@ -162,16 +159,16 @@ TTCAATGAATCCATTCTGCTGCGGGTTTACCCGGTTGAATATGGCACAAAGTAATACCATTATATTCACAGTAATTCAGT
 ### download_annotations() <a name="download_annotations"></a>
 Similar to `download_assembly()`, an assembly id is required for the `download_annotations()`, which can be used to either obtain the download link or to download the annotations directly. The annotations are in .gbk format.
 ```
-To use download_annotations(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
+To use download_annotations(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
 download_annotations flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved.
 If the download_annotations boolean is set to True, then only the assembly download link is retrieved.
-E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
-E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
-E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
+E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
+E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
+E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
 ```
 Download annotation link example:
 ```
-annotations_download_link=download_annotations(jwt=jwt,id=search_product_results_assembly_id,download_link_only=True,download_annotations=False)
+annotations_download_link=download_annotations(api_key=api_key,id=search_product_results_assembly_id,download_link_only=True,download_annotations=False)
 annotations_download_link
 ```
 `annotations_download_link` is the url to access in order to download the annotations:
@@ -180,7 +177,7 @@ https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-fil
 ```
 Download annotations directly example:
 ```
-annotations=download_annotations(jwt=jwt,id=search_product_results_assembly_id,download_link_only=False,download_annotations=True)
+annotations=download_annotations(api_key=api_key,id=search_product_results_assembly_id,download_link_only=False,download_annotations=True)
 for line in annotations.split("\n"):
   print(line)
 ```
@@ -233,12 +230,12 @@ with open("annotations.gbk", "w") as f:
 ### download_metadata() <a name="download_metadata"></a>
 `download_metadata()` should be used to obtain the detailed metadata including qc statistics, contig length(s), etc. for any given assembly id.
 ```
-To use download_metadata(), you must include your jwt and an assembly ID.
-E.g., download_metadata(jwt=YOUR_JWT,id=304fd1fb9a4e48ee) return metadata
+To use download_metadata(), you must include your api_key and an assembly ID.
+E.g., download_metadata(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee) return metadata
 ```
 The detailed metadata can be downloaded as follows:
 ```
-assembly_metadata = download_metadata(jwt=jwt,id=search_product_results_assembly_id)
+assembly_metadata = download_metadata(api_key=api_key,id=search_product_results_assembly_id)
 assembly_metadata
 ```
 `assembly_metadata` is a dictionary:
@@ -276,18 +273,18 @@ assembly_metadata
 ### download_all_genomes() - Deprecate? <a name="download_all_genomes"></a>
 download_all_genomes() allows the user to download all genomes available on https://genomes.atcc.org without prior knowledge of any associated metadata.
 ```
-To use download_all_genomes(), you must include your jwt, and a page number.
-E.g., download_all_genomes(jwt=YOUR_JWT,page=1,output="output.txt") return page 1 of metadata
+To use download_all_genomes(), you must include your api_key, and a page number.
+E.g., download_all_genomes(api_key=YOUR_API_KEY,page=1,output="output.txt") return page 1 of metadata
 ```
 ### download_catalogue() <a name="download_catalogue"></a>
 `download_catalogue()` allows the user to download the entire catalogue available on https://genomes.atcc.org and either return a list of all assembly metadata or save the list to a pkl file. The complete catalogue can be returned from the function as a list by not including an output path. The complete catalogue can be saved to a .pkl file by including an output path. **Saving to file is required to run the search_fuzzy() function**.
 ```
-To use download_catalogue(), you must include your jwt.
-E.g., download_catalogue(jwt=YOUR_JWT,output="output.txt")
+To use download_catalogue(), you must include your api_key.
+E.g., download_catalogue(api_key=YOUR_API_KEY,output="output.txt")
 ```
 The entire catalogue can be downloaded as follows:
 ```
-catalogue = download_catalogue(jwt=jwt)
+catalogue = download_catalogue(api_key=api_key)
 catalogue[0]
 ```
 `catalogue` is a list of dictionaries. The first element is:
@@ -315,10 +312,10 @@ catalogue[0]
 ```
 In order to use search_fuzzy(), the catalogue must be saved to file. For example:
 ```
-download_catalogue(jwt=jwt,output="path/to/catalogue.pkl")
+download_catalogue(api_key=api_key,output="path/to/catalogue.pkl")
 ```
 ### search_fuzzy() <a name="search_fuzzy"></a>
-`search_fuzzy()` allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(jwt=jwt,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
+`search_fuzzy()` allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(api_key=api_key,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
 ```
 To use search_fuzzy(), you must include a search term and the path to the catalogue
 downloaded via download_catalogue().
@@ -344,15 +341,15 @@ match_list=search_fuzzy(term="yursinia",catalogue_path="path/to/catalogue.pkl")
 ## Download all the data for all *E. coli* assemblies <a name="ex1"></a>
 First, we search for Escherichia coli using `search_text()`. Then we iterate through the results list, create a dictionary entry for each assembly, and then download and store the assembly, annotations, and metadata. The first 3 assemblies are downloaded below.
 ```
-search_text_results=search_text(jwt=jwt,text="Escherichia coli",id_only=False)
+search_text_results=search_text(api_key=api_key,text="Escherichia coli",id_only=False)
 e_coli_data = {}
 # Download assembly, annotations, and metadata for first 5 
 for e in search_text_results[:3]:
   id = e['id']
   e_coli_data[id] = {}
-  e_coli_data[id]["assembly"] = download_assembly(jwt=jwt,id=e['id'],download_link_only=False,download_assembly=True)
-  e_coli_data[id]["annotations"] = download_annotations(jwt=jwt,id=e['id'],download_link_only=False,download_annotations=True)
-  e_coli_data[id]["metadata"] = download_metadata(jwt=jwt,id=e['id'])
+  e_coli_data[id]["assembly"] = download_assembly(api_key=api_key,id=e['id'],download_link_only=False,download_assembly=True)
+  e_coli_data[id]["annotations"] = download_annotations(api_key=api_key,id=e['id'],download_link_only=False,download_annotations=True)
+  e_coli_data[id]["metadata"] = download_metadata(api_key=api_key,id=e['id'])
  ```
  ```
  for id in e_coli_data.keys():
@@ -403,11 +400,11 @@ checkm_results: {'completeness': 99.96693121693121, 'contamination': 0.037202380
 ## Download all the data for product 700822 <a name="ex2"></a>
 First, we use `search_product` to download the assembly metadata from which we pull out the assembly id. Then, we download the assembly, annotations, and metadata.
 ```
-search_products_results=search_product(jwt=jwt,product_id="700822",id_only=False)
+search_products_results=search_product(api_key=api_key,product_id="700822",id_only=False)
 id = search_products_results[0]['id']
-assembly=download_assembly(jwt=jwt,id=id,download_link_only=False,download_assembly=True)
-annotations=download_annotations(jwt=jwt,id=id,download_link_only=False,download_annotations=True)
-metadata=download_metadata(jwt=jwt,id=id)
+assembly=download_assembly(api_key=api_key,id=id,download_link_only=False,download_assembly=True)
+annotations=download_annotations(api_key=api_key,id=id,download_link_only=False,download_annotations=True)
+metadata=download_metadata(api_key=api_key,id=id)
 ```
 ```
 print("First 150 nts of each contig")
@@ -457,9 +454,9 @@ yersinia_data = {}
 for e in match_list[:3]:
   id = e['id']
   yersinia_data[id] = {}
-  yersinia_data[id]["assembly"] = download_assembly(jwt=jwt,id=e['id'],download_link_only=False,download_assembly=True)
-  yersinia_data[id]["annotations"] = download_annotations(jwt=jwt,id=e['id'],download_link_only=False,download_annotations=True)
-  yersinia_data[id]["metadata"] = download_metadata(jwt=jwt,id=e['id'])
+  yersinia_data[id]["assembly"] = download_assembly(api_key=api_key,id=e['id'],download_link_only=False,download_assembly=True)
+  yersinia_data[id]["annotations"] = download_annotations(api_key=api_key,id=e['id'],download_link_only=False,download_annotations=True)
+  yersinia_data[id]["metadata"] = download_metadata(api_key=api_key,id=e['id'])
 ```
 ```
 for id in yersinia_data.keys():
