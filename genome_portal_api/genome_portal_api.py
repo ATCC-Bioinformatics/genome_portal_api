@@ -22,23 +22,23 @@ class emptyResultsError(Exception):
     self.message = message
 
 def search_product(**kwargs):
-  if set(kwargs.keys()) == set(['jwt','product_id','id_only']):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(['api_key','product_id','id_only']):
+    api_key = kwargs['api_key']
     product_id = kwargs['product_id']
     id_only = kwargs['id_only']
   else:
     print("""
-      To use search_product(), you must include your jwt, a product_id, and a boolean id_only flag. If the 
+      To use search_product(), you must include your api_key, a product_id, and a boolean id_only flag. If the 
       id_only boolean is set to True, then only the assembly id is retrieved.
-      E.g., search_product(jwt=YOUR_JWT,product_id=35638,id_only=False) return resulting metadata
-      E.g., x = search_product(jwt=YOUR_JWT,product_id=35638,id_only=True) return only the assembly id
+      E.g., search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=False) return resulting metadata
+      E.g., x = search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=True) return only the assembly id
     """)
     return
 
   message="Your search returned zero results. This function uses exact string matching on ATCC catalog numbers. \
   Check your spelling and try again. If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += " -d \'{" + "\"product_id\"" + ": \"" + product_id + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
   result = os.popen(cmd).read()
@@ -58,27 +58,25 @@ def search_product(**kwargs):
           return data
   except emptyResultsError as ere:
     logger.warning(ere)
-  except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
 
 def search_text(**kwargs):
-  if set(kwargs.keys()) == set(['jwt','text','id_only']):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(['api_key','text','id_only']):
+    api_key = kwargs['api_key']
     text = kwargs['text']
     id_only = kwargs['id_only']
   else:
     print("""
-      To use search_text(), you must include your jwt, a search string and a boolean id_only flag. If the id_only boolean is set 
+      To use search_text(), you must include your api_key, a search string and a boolean id_only flag. If the id_only boolean is set 
       to True, then only the assembly id is retrieved.
-      E.g., search_text(jwt=YOUR_JWT,text="coli",id_only="False") return resulting metadata
-      E.g., x = search_text(jwt=YOUR_JWT,text="asp",id_only="True") return list of assembly ids
+      E.g., search_text(api_key=YOUR_API_KEY,text="coli",id_only="False") return resulting metadata
+      E.g., x = search_text(api_key=YOUR_API_KEY,text="asp",id_only="True") return list of assembly ids
     """)
     return  
 
   message="Your search returned zero results. This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
   Check your spelling and try again. If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += " -d \'{" + "\"text\"" + ": \"" + text + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
   result = os.popen(cmd).read()
@@ -98,12 +96,10 @@ def search_text(**kwargs):
           return data
   except emptyResultsError as ere:
     logger.warning(ere)
-  except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
 
 def download_assembly(**kwargs):
-  if set(kwargs.keys()) == set(["jwt","id","download_link_only","download_assembly"]):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(["api_key","id","download_link_only","download_assembly"]):
+    api_key = kwargs['api_key']
     id = kwargs['id']
     download_link_only = kwargs['download_link_only']
     download_assembly = kwargs['download_assembly']
@@ -112,18 +108,16 @@ def download_assembly(**kwargs):
         return
   else:
     print("""
-      To use download_assembly(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
+      To use download_assembly(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
       download_assembly flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved. 
       If the download_assembly boolean is set to True, then only the assembly download link is retrieved.
-      E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
-      E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
-      E.g., download_assembly(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
     """)
-    return  
+    return
 
-  message="Either the JWT has timed out, or the assembly ID was entered incorrectly. Retrieve updated JWT from https://genomes.atcc.org and/or re-enter assembly ID."
-
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
   cmd += " 2> /dev/null"
   try:
@@ -143,13 +137,15 @@ def download_assembly(**kwargs):
       return assembly_obj
     else:
       return data
-  except ValueError:
-    logger.warning(message)
+  except emptyResultsError as ere:
+    logger.warning(ere)
+
+
 
 
 def download_annotations(**kwargs):
-  if set(kwargs.keys()) == set(["jwt","id","download_link_only","download_annotations"]):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(["api_key","id","download_link_only","download_annotations"]):
+    api_key = kwargs['api_key']
     id = kwargs['id']
     download_link_only = kwargs['download_link_only']
     download_annotations = kwargs['download_annotations']
@@ -158,18 +154,16 @@ def download_annotations(**kwargs):
         return
   else:
     print("""
-      To use download_annotations(), you must include your jwt, an assembly ID, a boolean download_link_only flag, and a boolean 
+      To use download_annotations(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
       download_annotations flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved.
       If the download_annotations boolean is set to True, then only the assembly download link is retrieved.
-      E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
-      E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
-      E.g., download_annotations(jwt=YOUR_JWT,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
     """)
-    return 
+    return
 
-  message="Either the JWT has timed out, or the assembly ID was entered incorrectly. Retrieve updated JWT from https://genomes.atcc.org and/or re-enter assembly ID."
-
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_annotations"
   cmd += " 2> /dev/null"
   try:
@@ -185,27 +179,25 @@ def download_annotations(**kwargs):
       return annotations
     else:
       return data
-  # except emptyResultsError as ere:
-  #   logger.warning(ere)
-  except ValueError:
-    logger.warning(message)
+  except emptyResultsError as ere:
+    logger.warning(ere)
 
 
 def download_metadata(**kwargs):
-  if set(kwargs.keys()) == set(["jwt","id"]):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(["api_key","id"]):
+    api_key = kwargs['api_key']
     id = kwargs['id']
   else:
     print("""
-      To use download_metadata(), you must include your jwt and an assembly ID.
-      E.g., download_metadata(jwt=YOUR_JWT,id=304fd1fb9a4e48ee) return metadata
+      To use download_metadata(), you must include your api_key and an assembly ID.
+      E.g., download_metadata(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee) return metadata
     """)
     return 
 
   message="Your search returned an error. This function uses exact string matching to the hexidecimal string used for assembly identification. \
   The hexidecimal assembly id can be obtained using search_text(), search_product(), or search_fuzzy(). Check your spelling and try again."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}"
   cmd += " 2> /dev/null"
   try:
@@ -216,25 +208,23 @@ def download_metadata(**kwargs):
       data = json.loads(result)
       return data
   except emptyResultsError as ere:
-    logger.warning(ere)  
-  except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
+    logger.warning(ere)
 
 
 def download_all_genomes(**kwargs):
-  if set(kwargs.keys()) == set(["jwt","page"]):
-    jwt = kwargs['jwt']
+  if set(kwargs.keys()) == set(["api_key","page"]):
+    api_key = kwargs['api_key']
     page = kwargs['page']
   else:
     print("""
-      To use download_all_genomes(), you must include your jwt, and a page number.
-      E.g., download_all_genomes(jwt=YOUR_JWT,page=1,output="output.txt") return page 1 of metadata
+      To use download_all_genomes(), you must include your api_key, and a page number.
+      E.g., download_all_genomes(api_key=YOUR_API_KEY,page=1,output="output.txt") return page 1 of metadata
     """)
     return 
   message="Your search returned zero results. Double check that the page you are searching for exists, and try again."
   message2="Your search returned an error. Double check that the page you are searching for exists, and try again."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
   cmd += " 2> /dev/null"
   try:
@@ -248,40 +238,37 @@ def download_all_genomes(**kwargs):
       else:
         return data
   except emptyResultsError as ere:
-    logger.warning(ere)  
-  except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
+    logger.warning(ere)
 
 def download_catalogue(**kwargs):
-  if "jwt" in kwargs.keys(): 
-    jwt = kwargs['jwt']
+  if "api_key" in kwargs.keys(): 
+    api_key = kwargs['api_key']
     if "output" in kwargs.keys():
       output = kwargs['output']
     else:
       output = False
   else:
     print("""
-      To use download_catalogue(), you must include your jwt. The output argument is optional and
+      To use download_catalogue(), you must include your api_key. The output argument is optional and
       should be used to save the resulting data to a .pkl file. This is required to use the 
       search_fuzzy() function.
-      E.g., download_catalogue(jwt=YOUR_JWT) # returns the complete list of assembly objects
-      E.g., download_catalogue(jwt=YOUR_JWT,output="output.txt") # write the list of available genomes to file
+      E.g., download_catalogue(api_key=YOUR_API_KEY) # returns the complete list of assembly objects
+      E.g., download_catalogue(api_key=YOUR_API_KEY,output="output.txt") # write the list of available genomes to file
     """)
-    return 
-    message="download_catalogue() complete."
+    return
+
   try:
     page=1
     all_data = []
     empty_result=False
     while empty_result == False:
-      cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"Authorization: Bearer {jwt}\""
+      cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
       cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
       cmd += " 2> /dev/null"
       result = os.popen(cmd).read()
       data = json.loads(result)
       if data == []:
-        empty_result=True
-        if output == False:
+        if output is False:
           return all_data
         else:
           with open(output, 'wb') as file:
@@ -293,9 +280,7 @@ def download_catalogue(**kwargs):
         page+=1
 
   except emptyResultsError as ere:
-    logger.info(ere)  
-  except ValueError:
-    logger.warning("JWT may have timed out. Retrieve updated JWT from https://genomes.atcc.org and try again.")
+    logger.info(ere)
 
 def returnflatlist(newlist, nesteddict):
   for key, value in nesteddict.items():
