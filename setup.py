@@ -8,14 +8,14 @@ def readme():
 
 setup(
     name="genome_portal_api",
-    version="0.0.1",
+    version="0.1.0",
     description="Python package to access and download"
     "data from ATCC's Genome Portal",
     long_description=readme(),
     long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent",
     ],
     url="https://github.com/ATCC-Bioinformatics",
@@ -24,6 +24,6 @@ setup(
     keywords="core package",
     license="https://www.atcc.org/policies/product-use-policies/data-use-agreement",
     packages=["genome_portal_api"],
-    install_requires=["fuzzywuzzy>=0.18.0","python-Levenshtein>=0.12.2"],
+    install_requires=["fuzzywuzzy>=0.18.0","python-Levenshtein>=0.12.2", "requests>=2.31.0", "argparse>=1.1"],
     include_package_data=True,
 )
