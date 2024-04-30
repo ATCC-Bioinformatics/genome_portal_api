@@ -2,9 +2,14 @@ import os
 import argparse
 from argparse import RawTextHelpFormatter
 import json
+import time
 import pickle as pkl
 from fuzzywuzzy import fuzz
 import logging
+import requests
+import glob
+from typing import Any, Dict, Generator, List, Optional
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -41,7 +46,9 @@ def search_product(**kwargs):
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += " -d \'{" + "\"product_id\"" + ": \"" + product_id + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
-  result = os.popen(cmd).read()
+  result_stage = os.popen(cmd)
+  result = result_stage.read()
+  result_stage.close()
 
   try:
     if id_only == True or id_only == "True":
@@ -79,7 +86,9 @@ def search_text(**kwargs):
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
   cmd += " -d \'{" + "\"text\"" + ": \"" + text + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
-  result = os.popen(cmd).read()
+  result_stage = os.popen(cmd)
+  result = result_stage.read()
+  result_stage.close()
   try:
     if id_only == True or id_only == "True":
         data = json.loads(result)
@@ -98,22 +107,36 @@ def search_text(**kwargs):
     logger.warning(ere)
 
 def download_assembly(**kwargs):
-  if set(kwargs.keys()) == set(["api_key","id","download_link_only","download_assembly"]):
+  if not "download_assembly" or "download_link" in kwargs:
+    logger.warning("One download argument must be provided!")
+    return
+  if "api_key" and "id" in kwargs:
     api_key = kwargs['api_key']
     id = kwargs['id']
-    download_link_only = kwargs['download_link_only']
-    download_assembly = kwargs['download_assembly']
-    if download_link_only == download_assembly and download_link_only in [True,"True"]:
+    download_assembly_file = kwargs['download_assembly_file'] if 'download_assembly_file' in kwargs else False
+    download_assembly_path = kwargs["download_assembly_path"] if 'download_assembly_path' in kwargs else False
+    download_link_only = kwargs['download_link_only'] if 'download_link_only' in kwargs else False
+    download_assembly_dict = kwargs['download_assembly_dict'] if 'download_assembly_dict' in kwargs else False
+    if download_link_only == download_assembly_file and download_link_only in [True,"True"]:
         logger.warning("download_link_only and download_assembly cannot both be True")
+        return
+    if not download_assembly_path and download_assembly_file in [True,"True"]:
+        logger.warning("download_path MUST be provided when selecting download_assembly")
         return
   else:
     print("""
-      To use download_assembly(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
-      download_assembly flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved. 
-      If the download_assembly boolean is set to True, then only the assembly download link is retrieved.
-      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
-      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
-      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
+      To use download_assembly(), you must include:
+      - api_key=<Your api_key>
+      - id=<GenomeID>
+      One or more of the flags below should be present:
+      - Boolean 'download_link_only' flag     (returns temporary assembly url) 
+      - Boolean 'download_assembly_dict' flag (returns assembly file dictionary; [key]=header,[value]=sequence)
+      - Boolean 'download_assembly_file' flag (download assembly fasta file to provided path "below")
+         - 'download_assembly_path'           (Needed for 'download_assembly_file'; quoted str path to download assembly) \n
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_assembly_file=True,download_assembly_path="/directory/for/download/") downloads an assembly file to provided path
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only=True) return assembly url
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_assembly_dict=True) return assembly dict 
+      E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only=False,download_assembly=False) return raw json result
     """)
     return
 
@@ -121,12 +144,19 @@ def download_assembly(**kwargs):
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
   cmd += " 2> /dev/null"
   try:
-    result = os.popen(cmd).read()
+    grab = os.popen(cmd)
+    result = grab.read()
     data = json.loads(result)
+    grab.close()
+    if "message" in result:
+      logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
+      return result
     if download_link_only == True or download_link_only == "True":
       return data['url']
-    elif download_assembly == True or download_assembly == "True":
-      assembly = os.popen(f"curl \"{data['url']}\"").read()
+    elif download_assembly_file == True or download_assembly_file == "True" or download_assembly_dict == True or download_assembly_dict == "True":
+      time.sleep(2) # Allow 2 seconds per tmp URL generation
+      assembly_stage = os.popen(f"curl \"{data['url']}\"")
+      assembly = assembly_stage.read()
       assembly_obj = {}
       for line in assembly.split("\n"):
         if ">" in line:
@@ -134,8 +164,28 @@ def download_assembly(**kwargs):
           assembly_obj[header] = ""
         else:
           assembly_obj[header] += line.strip()
-      return assembly_obj
+      assembly_stage.close()
+      if download_assembly_dict == True or download_assembly_dict =='True':
+        return assembly_obj
+      elif download_assembly_file == True or download_assembly_file == 'True':
+        output_file_path = os.path.join(download_assembly_path, data['save_as_filename'])
+        if os.path.isfile(output_file_path):
+            if os.path.getsize(output_file_path) > 500:
+                print(f"{output_file_path} already exists in download folder! Moving on!")
+                return
+        if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
+          try:
+            with open(output_file_path, 'w') as f: 
+              for key, value in assembly_obj.items():
+                print(key, file=f)
+                print(value, file=f)
+              print(f"SUCCESS! File: {output_file_path} now exists!")
+          except emptyResultsError as ere:
+            logger.warning(ere)
+      else:
+        return assembly_obj
     else:
+      print("You may have forgotten or mispelled a download argument!")
       return data
   except emptyResultsError as ere:
     logger.warning(ere)
@@ -144,22 +194,36 @@ def download_assembly(**kwargs):
 
 
 def download_annotations(**kwargs):
-  if set(kwargs.keys()) == set(["api_key","id","download_link_only","download_annotations"]):
+  if not "download_assembly" or "download_link" in kwargs:
+    logger.warning("One download argument must be provided!")
+    return
+  if "api_key" and "id" in kwargs:
     api_key = kwargs['api_key']
     id = kwargs['id']
-    download_link_only = kwargs['download_link_only']
-    download_annotations = kwargs['download_annotations']
-    if download_link_only == download_annotations and download_link_only in [True,"True"]:
+    download_annotations_file = kwargs['download_annotations_file'] if 'download_annotations_file' in kwargs else False
+    download_annotations_path = kwargs["download_annotations_path"] if 'download_annotations_path' in kwargs else False
+    download_link_only = kwargs['download_link_only'] if 'download_link_only' in kwargs else False
+    download_annotations_dict = kwargs['download_annotations_dict'] if 'download_annotations_dict' in kwargs else False
+    if download_link_only == download_annotations_file and download_annotations_file in [True,"True"]:
         logger.warning("download_link_only and download_assembly cannot both be True")
+        return
+    if not download_annotations_path and download_annotations_file in [True,"True"]:
+        logger.warning("download_path MUST be provided when selecting download_assembly")
         return
   else:
     print("""
-      To use download_annotations(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
-      download_annotations flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved.
-      If the download_annotations boolean is set to True, then only the assembly download link is retrieved.
-      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
-      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
-      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
+      To use download_annotations(), you must include:
+      - api_key=<Your api_key>
+      - id=<GenomeID>
+      One or more of the flags below should be present:
+      - Boolean 'download_link_only' flag        (returns temporary annotations url) 
+      - Boolean 'download_annotations_dict' flag (returns GenBank raw string)
+      - Boolean 'download_annotations_file' flag (downloads GenBank file to provided path "below")
+         - 'download_annotations_path'           (Needed for 'download_annotations_file'; quoted str path to download GenBanks) \n
+
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True") return annotation data url 
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_annotations_dict="True") return the raw genbank file
+      E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_annotations_file="True",download_annotations_path="/directory/for/download") return the raw json result
     """)
     return
 
@@ -167,20 +231,43 @@ def download_annotations(**kwargs):
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_annotations"
   cmd += " 2> /dev/null"
   try:
-    result = os.popen(cmd).read()
-      # if "<!DOCTYPE html>" in result:
-      #   raise emptyResultsError(message)
-      # else:
+    grab = os.popen(cmd)
+    result = grab.read()
     data = json.loads(result)
+    grab.close()
+    if "message" in result:
+      logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
+      return result
     if download_link_only == True or download_link_only == "True":
       return data['url']
-    elif download_annotations == True or download_annotations == "True":
-      annotations = os.popen(f"curl \"{data['url']}\"").read()
-      return annotations
+    elif download_annotations_file == True or download_annotations_file == "True" or download_annotations_dict == True or download_annotations_dict == "True":
+      time.sleep(2) # Allow 2 seconds per tmp URL generation
+      annotations_stage = os.popen(f"curl \"{data['url']}\"")
+      annotations = annotations_stage.read()
+      annotations_stage.close()
+      if download_annotations_dict == True or download_annotations_dict =='True':
+        return annotations
+      elif download_annotations_file == True or download_annotations_file == 'True':
+        output_file_path = os.path.join(download_annotations_path, data['save_as_filename'])
+        if os.path.isfile(output_file_path):
+            if os.path.getsize(output_file_path) > 500:
+                print(f"{output_file_path} already exists in download folder! Moving on!")
+                return
+        if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
+          try:
+            with open(output_file_path, 'w') as f: 
+              f.write(annotations)
+            print(f"SUCCESS! File: {output_file_path} now exists!")
+          except emptyResultsError as ere:
+            logger.warning(ere)
+      else:
+        return annotations
     else:
+      print("You may have forgotten or mispelled a download argument!")
       return data
   except emptyResultsError as ere:
     logger.warning(ere)
+
 
 
 def download_metadata(**kwargs):
@@ -201,7 +288,9 @@ def download_metadata(**kwargs):
   cmd += f" https://genomes.atcc.org/api/genomes/{id}"
   cmd += " 2> /dev/null"
   try:
-    result = os.popen(cmd).read()
+    result_stage = os.popen(cmd)
+    result = result_stage.read()
+    result_stage.close()
     if "Not found." in result:
       raise emptyResultsError(message)
     else:
@@ -211,34 +300,57 @@ def download_metadata(**kwargs):
     logger.warning(ere)
 
 
+def iter_paginated_endpoint(url: str, api_key) -> Generator:
+    """Fetch all items from a paginated API endpoint"""
+    page = 1
+    total = 0
+    while True:
+        resp = requests.get(
+            url,
+            auth=(api_key, ""),
+            params={"page": page},
+        )
+        if not resp.status_code == 200:
+            raise Exception(f"something went wrong {resp.status_code}: {resp.text}")
+        pagination_info = json.loads(resp.headers["X-Pagination"])
+        page = pagination_info.get("next_page")
+        rows = resp.json()
+        for row in rows:
+            total += 1
+            yield row
+        if page is None or len(rows) == 0:
+            break
+
+def get_genomes(api_key) -> Generator:
+    """Fetch list of Genomes using ATCC Genome Management API"""
+    return iter_paginated_endpoint("https://genomes.atcc.org/api/genomes", api_key)
+
 def download_all_genomes(**kwargs):
-  if set(kwargs.keys()) == set(["api_key","page"]):
+  if "api_key" in kwargs:
     api_key = kwargs['api_key']
-    page = kwargs['page']
+    genomes=list(get_genomes(api_key))
+    print(f"Fetched {len(genomes):,} genomes")
+    for visibility, count in Counter(
+      [g["primary_assembly"]["visibility"] for g in genomes]
+        ).items():
+            print(f"genomes {visibility=}: {count:,}")
   else:
     print("""
       To use download_all_genomes(), you must include your api_key, and a page number.
-      E.g., download_all_genomes(api_key=YOUR_API_KEY,page=1,output="output.txt") return page 1 of metadata
+      E.g., download_all_genomes(api_key=YOUR_API_KEY) returns all metadata
     """)
     return 
   message="Your search returned zero results. Double check that the page you are searching for exists, and try again."
   message2="Your search returned an error. Double check that the page you are searching for exists, and try again."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
-  cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
-  cmd += " 2> /dev/null"
-  try:
-    result = os.popen(cmd).read()
-    if "errors" in result:
-      raise emptyResultsError(message2)
+  if "errors" in genomes:
+    raise emptyResultsError(message2)
+  else:
+    data = genomes
+    if data == [] or genomes == []:
+      raise emptyResultsError(message)
     else:
-      data = json.loads(result)
-      if data == [] or result == []:
-        raise emptyResultsError(message)
-      else:
-        return data
-  except emptyResultsError as ere:
-    logger.warning(ere)
+      return data
 
 def download_catalogue(**kwargs):
   if "api_key" in kwargs.keys(): 
@@ -265,8 +377,10 @@ def download_catalogue(**kwargs):
       cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
       cmd += f" https://genomes.atcc.org/api/genomes?page={page}"
       cmd += " 2> /dev/null"
-      result = os.popen(cmd).read()
+      result_stage = os.popen(cmd)
+      result = result_stage.read()
       data = json.loads(result)
+      result_stage.close()
       if data == []:
         if output is False:
           return all_data
@@ -294,7 +408,6 @@ def returnflatlist(newlist, nesteddict):
 
 def search_fuzzy(**kwargs):
   fuzz_value = 75
-  stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]
   if set(kwargs.keys()) == set(["term","catalogue_path"]):
     term = kwargs['term']
     catalogue_path = kwargs['catalogue_path']
@@ -324,5 +437,3 @@ def search_fuzzy(**kwargs):
     if fuzzy_match == True:
       items_to_return.append(item)
   return items_to_return 
-
-### Create test function

@@ -1,1 +1,1 @@
-from .genome_portal_api import search_fuzzy,download_catalogue,download_all_genomes,download_metadata,download_annotations,download_assembly,search_text,search_product
+from .genome_portal_api import search_fuzzy,download_catalogue,download_all_genomes,download_metadata,download_annotations,download_assembly,search_text,search_product,get_genomes,iter_paginated_endpoint
