@@ -10,6 +10,7 @@ import requests
 import glob
 from typing import Any, Dict, Generator, List, Optional
 from collections import Counter
+import json
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -148,14 +149,17 @@ def download_assembly(**kwargs):
     result = grab.read()
     data = json.loads(result)
     grab.close()
-    if "message" in result:
+    assembly_stage=None
+    if "membership" in result:
       logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
       return result
     if download_link_only == True or download_link_only == "True":
       return data['url']
     elif download_assembly_file == True or download_assembly_file == "True" or download_assembly_dict == True or download_assembly_dict == "True":
-      time.sleep(2) # Allow 2 seconds per tmp URL generation
-      assembly_stage = os.popen(f"curl \"{data['url']}\"")
+      while not assembly_stage:
+        assembly_stage = os.popen(f"curl \"{data['url']}\"")
+        if not assembly_stage:
+          time.sleep(2.5) # Allow 2 seconds per tmp URL generation
       assembly = assembly_stage.read()
       assembly_obj = {}
       for line in assembly.split("\n"):
@@ -169,10 +173,10 @@ def download_assembly(**kwargs):
         return assembly_obj
       elif download_assembly_file == True or download_assembly_file == 'True':
         output_file_path = os.path.join(download_assembly_path, data['save_as_filename'])
-        if os.path.isfile(output_file_path):
-            if os.path.getsize(output_file_path) > 500:
-                print(f"{output_file_path} already exists in download folder! Moving on!")
-                return
+        # if os.path.isfile(output_file_path):
+        #     if os.path.getsize(output_file_path) > 500:
+        #         print(f"{output_file_path} already exists in download folder! Moving on!")
+        #         return
         if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
           try:
             with open(output_file_path, 'w') as f: 
@@ -182,6 +186,25 @@ def download_assembly(**kwargs):
               print(f"SUCCESS! File: {output_file_path} now exists!")
           except emptyResultsError as ere:
             logger.warning(ere)
+        if os.path.isfile(output_file_path) or os.path.getsize(output_file_path) > 500:
+                try:
+                    with open(output_file_path, 'r') as f: 
+                        for line in f:
+                            if line.startswith(">"):
+                                filtered=line[line.find('assembly_id='):][13:29]
+                                if filtered in str(assembly_obj):
+                                    logger.log("This file already exists, and the assembly version is the same...re-downloading!")
+                                else:
+                                    logger.log("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
+                                    incoming_id = assembly[assembly.find('assembly_id='):][13:29]
+                                    output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
+                        with open(output_file_path, 'w') as f: 
+                            for key, value in assembly_obj.items():
+                                print(key, file=f)
+                                print(value, file=f)
+                        print(f"SUCCESS! File: {output_file_path} now exists!")
+                except:
+                  print("Whoops, we encountered a file link bug. Please try again!")
       else:
         return assembly_obj
     else:
@@ -235,24 +258,27 @@ def download_annotations(**kwargs):
     result = grab.read()
     data = json.loads(result)
     grab.close()
+    annotations_stage=None
     if "message" in result:
       logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
       return result
     if download_link_only == True or download_link_only == "True":
       return data['url']
     elif download_annotations_file == True or download_annotations_file == "True" or download_annotations_dict == True or download_annotations_dict == "True":
-      time.sleep(2) # Allow 2 seconds per tmp URL generation
-      annotations_stage = os.popen(f"curl \"{data['url']}\"")
+      while not annotations_stage:
+        annotations_stage = os.popen(f"curl \"{data['url']}\"")
+        if not annotations_stage:
+          time.sleep(2.5)
       annotations = annotations_stage.read()
       annotations_stage.close()
       if download_annotations_dict == True or download_annotations_dict =='True':
         return annotations
       elif download_annotations_file == True or download_annotations_file == 'True':
         output_file_path = os.path.join(download_annotations_path, data['save_as_filename'])
-        if os.path.isfile(output_file_path):
-            if os.path.getsize(output_file_path) > 500:
-                print(f"{output_file_path} already exists in download folder! Moving on!")
-                return
+        # if os.path.isfile(output_file_path):
+        #     if os.path.getsize(output_file_path) > 500:
+        #         print(f"{output_file_path} already exists in download folder! Moving on!")
+        #         return
         if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
           try:
             with open(output_file_path, 'w') as f: 
@@ -260,6 +286,25 @@ def download_annotations(**kwargs):
             print(f"SUCCESS! File: {output_file_path} now exists!")
           except emptyResultsError as ere:
             logger.warning(ere)
+          if os.path.isfile(output_file_path) or os.path.getsize(output_file_path) > 500:
+            try:
+                with open(output_file_path, 'r') as f: 
+                    for line in f:
+                        if line.startswith(">"):
+                            filtered=line[line.find('assembly_id='):][13:29]
+                            if filtered in str(assembly_obj):
+                                logger.log("This file already exists, and the assembly version is the same...re-downloading!")
+                            else:
+                                logger.log("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
+                                incoming_id = assembly[assembly.find('assembly_id='):][13:29]
+                                output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
+                    with open(output_file_path, 'w') as f: 
+                        for key, value in assembly_obj.items():
+                            print(key, file=f)
+                            print(value, file=f)
+                    print(f"SUCCESS! File: {output_file_path} now exists!")
+            except:
+              print("Whoops, we encountered a file link bug. Please try again!")
       else:
         return annotations
     else:
@@ -324,6 +369,26 @@ def iter_paginated_endpoint(url: str, api_key) -> Generator:
 def get_genomes(api_key) -> Generator:
     """Fetch list of Genomes using ATCC Genome Management API"""
     return iter_paginated_endpoint("https://genomes.atcc.org/api/genomes", api_key)
+
+def convert_to_genomeid(**kwargs):
+  if "genome_list" in kwargs:
+    genomes = kwargs['genome_list']
+    final_format = {g["id"]: g for g in genomes}
+  if "annotations_list" in kwargs:
+    annotations = kwargs['annotations_list']
+  else:
+    print("""
+      The purpose of this function is to format a list of genomic metadata to it's genomeID linked on the portal
+      To use convert_to_genomeid(), please provide a list that you would like converted to genomeIDs.
+      
+      E.g., formated_genome_list = convert_to_genomeid(genomes=download_all_genomes(api_key=<api_key>)) 
+      ------ returns each genomeID as the list index
+      For example, a list of genomes provided by `download_all_genomes` named: genome_list;
+      -- genome_list[1] may have an ID of "48a898bec49c4b13"...
+      -- running this function will output a new list of genomes, where that genome is now indexed as "genome_list['48a898bec49c4b13']"
+    """)
+    return final_format
+
 
 def download_all_genomes(**kwargs):
   if "api_key" in kwargs:
