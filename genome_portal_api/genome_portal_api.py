@@ -19,7 +19,9 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
+stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
+
 
 logger.addHandler(stream_handler)
 
@@ -27,30 +29,110 @@ class emptyResultsError(Exception):
   def __init__(self, message):
     self.message = message
 
+
+def set_global_api(apikey=None): #! Intended to 
+  """
+    Sets the global API key variable by checking environment variables and function input.
+    :param api_key: User-provided API key (optional)
+  """
+  global global_api_key
+  ## Check to see if set as enviornment variable
+  if "ATCC_GENOME_PORTAL_API_KEY" in os.environ:
+    global_api_key = os.environ["ATCC_GENOME_PORTAL_API_KEY"]
+    logger.info(f"API key has been found: {global_api_key}")
+    return
+  ## Check to see if was provided as input to this function
+  if apikey:
+    global_api_key = apikey
+    logger.info(f"API key is now set: {global_api_key}. Please export this api_key under the variable 'ATCC_GENOME_PORTAL_API_KEY'!")
+    return
+  # If still no API key, prompt the user to input one
+  while True:
+    user_input = input("Please enter the API key: ")
+    if user_input:
+      global_api_key = user_input
+      logger.info(f"Using user-provided API key: {global_api_key}")
+      break
+    else:
+      print("API key cannot be empty. Please try again.")
+
+
+
+
+def load_all_metadata(genome_list=None):
+  """
+    Stores a global variable for the JSONs of all metadata
+  """
+  global global_genome_metadata
+  ## Check to see if set as enviornment variable
+  if not global_genome_metadata:
+    global_genome_metadata=download_all_genomes()
+    logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
+  else:
+    logger.info(f"All genome have been already been stored under the variable 'global_genome_metadata' ")
+    logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
+
+
+
+def json_search(nested_dict, term): #! Intended to iteratively search JSON key:value schema in genome metadata
+  def recursive_search(d, term):
+    try:
+      for key, value in d.items():
+        if key == term or value == term:
+          return True
+        elif isinstance(value, dict):
+          # Recursively search nested dictionaries
+          if recursive_search(value, term):
+            return True
+      return False
+    except AttributeError:
+      return False  
+  return recursive_search(nested_dict, term)
+    
+    
+
+
+
 def search_product(**kwargs):
-  if set(kwargs.keys()) == set(['api_key','product_id','id_only']):
-    api_key = kwargs['api_key']
+  if "api_key" in kwargs:
+    apikey = kwargs['api_key']
+    if global_api_key:
+      if str(apikey) != str(global_api_key):
+        apikey = global_api_key 
+  else:
+      apikey = global_api_key if global_api_key else set_global_api()
+  id_only = kwargs['id_only'] if 'id_only' in kwargs else True
+  if 'product_id' in kwargs:
     product_id = kwargs['product_id']
-    id_only = kwargs['id_only']
   else:
     print("""
-      To use search_product(), you must include your api_key, a product_id, and a boolean id_only flag. If the 
-      id_only boolean is set to True, then only the assembly id is retrieved.
-      E.g., search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=False) return resulting metadata
-      E.g., x = search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=True) return only the assembly id
+      search_product() is intended for EXACT matching of ATCC product numbers. 
+      This mimics the function of using the search bar on the ATCC Genome Portal set to CATALOG NUMBER
+
+      USAGE:
+      Required:
+      -- (product_id="<product_id">) an ATCC product_id
+      -- your api_key (Globally set variable "global_api_key" or entered "api_key")
+      
+      Options:
+      -- boolean id_only flag
+      ---- DEFAULT: 'id_only' boolean is set to True; set it to 'False' to return metadata tpo.
+      
+      E.g., search_product(product_id='35638') return resulting Genome ID for ATCC 35638
+      E.g., search_product(product_id='35638',id_only=False) return resulting metadata for ATCC 35638
+      E.g., x = search_product(api_key=YOUR_API_KEY,product_id='35638',id_only=False) Same as above, but with a manually entered API Key
     """)
     return
 
   message="Your search returned zero results. This function uses exact string matching on ATCC catalog numbers. \
   Check your spelling and try again. If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {apikey}\""
   cmd += " -d \'{" + "\"product_id\"" + ": \"" + product_id + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
   result_stage = os.popen(cmd)
   result = result_stage.read()
   result_stage.close()
-
   try:
     if id_only == True or id_only == "True":
         data = json.loads(result)
@@ -67,24 +149,46 @@ def search_product(**kwargs):
   except emptyResultsError as ere:
     logger.warning(ere)
 
+
+
+
+
 def search_text(**kwargs):
-  if set(kwargs.keys()) == set(['api_key','text','id_only']):
-    api_key = kwargs['api_key']
+  if "api_key" in kwargs:
+    apikey = kwargs['api_key']
+    if global_api_key:
+      if str(apikey) != str(global_api_key):
+        apikey = global_api_key 
+  else:
+      apikey = global_api_key if global_api_key else set_global_api()
+  
+  id_only = kwargs['id_only'] if 'id_only' in kwargs else True
+  if 'text' in kwargs:
     text = kwargs['text']
-    id_only = kwargs['id_only']
   else:
     print("""
-      To use search_text(), you must include your api_key, a search string and a boolean id_only flag. If the id_only boolean is set 
-      to True, then only the assembly id is retrieved.
-      E.g., search_text(api_key=YOUR_API_KEY,text="coli",id_only="False") return resulting metadata
-      E.g., x = search_text(api_key=YOUR_API_KEY,text="asp",id_only="True") return list of assembly ids
+      search_text() is intended for exact string matching or substring matching on taxonomic names. This will also capture partial matching of ATCC product numbers. 
+      This mimics the function of using the search bar default on the ATCC Genome Portal, but DOES NOT FULLY SUPPORT FUZZY MATCHING
+
+      USAGE:
+      Required:
+      -- (text="<text>") a free text field to search 
+      -- your api_key (Globally set variable "global_api_key" or entered "api_key")
+      
+      Options:
+      -- boolean id_only flag
+      ---- DEFAULT: 'id_only' boolean is set to True; set it to 'False' to return metadata tpo.
+      
+      E.g., search_text(text='coli') return resulting Genome IDs that match that string
+      E.g., search_text(text='coli',id_only=False) return resulting metadata for genomes that contain that text string
+      E.g., metadata = search_text(api_key=YOUR_API_KEY,text='coli',id_only=False) Same as above, but with a manually entered API Key
     """)
     return  
 
   message="Your search returned zero results. This function uses exact string matching or substrings on taxonomic names, or exact string matching on ATCC catalog numbers. \
   Check your spelling and try again. If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
 
-  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {api_key}\""
+  cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {apikey}\""
   cmd += " -d \'{" + "\"text\"" + ": \"" + text + "\"}\' https://genomes.atcc.org/api/genomes/search"
   cmd += " 2> /dev/null"
   result_stage = os.popen(cmd)
@@ -106,6 +210,84 @@ def search_text(**kwargs):
           return data
   except emptyResultsError as ere:
     logger.warning(ere)
+
+
+
+
+
+def deep_search(**kwargs):
+  
+  # API entry O.o.O kwargs['api_key'] > global_api_key
+  if "api_key" in kwargs:
+    apikey = kwargs['api_key']
+    if global_api_key:
+      if str(apikey) != str(global_api_key):
+        apikey = global_api_key 
+  else:
+      apikey = global_api_key if global_api_key else set_global_api()
+  
+  # Method to search. Defaults to JSON format of typical KEY:VALUE
+  if "method" in kwargs:
+    method=kwargs['method'].lower()
+  else:
+    method="json"
+  
+  # Store ID only as true
+  id_only = kwargs['id_only'] if 'id_only' in kwargs else True
+  
+  # If global genome list is empty, repull all JSONs
+  genome_list = global_genome_metadata if global_genome_metadata else load_all_metadata()
+  
+  if 'text' in kwargs:
+    text = kwargs['text']
+  else:
+    print("""
+      deep_search() is intended for deep searching of ATCC JSON metadata behind each genome.
+      THIS FUNCTION SUPPORTS EXACT KEY|VALUE|STRING MATCHING, WITH "text" METHOD CAPTURE SUBSTRINGS.
+      There is currently no similar function on the ATCC Genome Portal.
+      This function will search through the JSON metadata of all available genomes for matching strings or values.
+
+      USAGE:
+      Required:
+      -- (text="<text">) any text field caputured within the JSON of the portal.
+      -- your api_key (Globally set variable "global_api_key" or entered "api_key")
+      -- a list of genomes (Globally set variable "global_genome_metadata")
+      
+      Options:
+      -- The method you want to search (DEFAULT: set to "json" [ json | text ])
+      -- boolean id_only flag (DEFAULT: set to True)
+      ---- Set it to 'False' to return full metadata too.
+      
+      E.g., search_results = deep_search(text="PGAP") will return a list of genomeIDs that had "PGAP" somewhere in the JSON
+      E.g., deep_search(text='Lake') return resulting assembly IDs that contain "Lake" in the metadata
+      E.g., search_results = deep_search(api_key=YOUR_API_KEY,text="Lake",id_only=False) Same as above, but with a manually entered API Key and full metadata output.
+    """)
+    return
+
+  message="Your search returned zero results. This function uses exact string matching on the JSON metadata for each genome. \
+  Check your spelling and try again. If you continue to have issues, try downloading an assembly metadata file to ensure the search term is present."
+
+  try:  
+    items_to_return = []
+    
+    for item in genome_list:
+      if method == "json":
+        gotcha=json_search(item, text)
+      else:
+        gotcha=text in str(item)
+      if gotcha:
+        if id_only in ['False', False] :
+          items_to_return.append(item)
+        else:
+          items_to_return.append(item['id'])
+    if items_to_return:
+      return items_to_return
+    else:
+      emptyResultsError(message)
+  except emptyResultsError as ere:
+    logger.warning(ere)
+
+
 
 def download_assembly(**kwargs):
   if not "download_assembly" or "download_link" in kwargs:
@@ -150,9 +332,11 @@ def download_assembly(**kwargs):
     data = json.loads(result)
     grab.close()
     assembly_stage=None
+    print(grab)
     if "membership" in result:
       logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
       return result
+    print(result)
     if download_link_only == True or download_link_only == "True":
       return data['url']
     elif download_assembly_file == True or download_assembly_file == "True" or download_assembly_dict == True or download_assembly_dict == "True":
@@ -173,10 +357,6 @@ def download_assembly(**kwargs):
         return assembly_obj
       elif download_assembly_file == True or download_assembly_file == 'True':
         output_file_path = os.path.join(download_assembly_path, data['save_as_filename'])
-        # if os.path.isfile(output_file_path):
-        #     if os.path.getsize(output_file_path) > 500:
-        #         print(f"{output_file_path} already exists in download folder! Moving on!")
-        #         return
         if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
           try:
             with open(output_file_path, 'w') as f: 
@@ -193,9 +373,9 @@ def download_assembly(**kwargs):
                             if line.startswith(">"):
                                 filtered=line[line.find('assembly_id='):][13:29]
                                 if filtered in str(assembly_obj):
-                                    logger.log("This file already exists, and the assembly version is the same...re-downloading!")
+                                    logger.info("This file already exists, and the assembly version is the same...re-downloading!")
                                 else:
-                                    logger.log("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
+                                    logger.info("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
                                     incoming_id = assembly[assembly.find('assembly_id='):][13:29]
                                     output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
                         with open(output_file_path, 'w') as f: 
@@ -203,7 +383,8 @@ def download_assembly(**kwargs):
                                 print(key, file=f)
                                 print(value, file=f)
                         print(f"SUCCESS! File: {output_file_path} now exists!")
-                except:
+                except Exception as e:
+                  print(e)
                   print("Whoops, we encountered a file link bug. Please try again!")
       else:
         return assembly_obj
@@ -212,9 +393,6 @@ def download_assembly(**kwargs):
       return data
   except emptyResultsError as ere:
     logger.warning(ere)
-
-
-
 
 def download_annotations(**kwargs):
   if not "download_assembly" or "download_link" in kwargs:
@@ -259,9 +437,10 @@ def download_annotations(**kwargs):
     data = json.loads(result)
     grab.close()
     annotations_stage=None
-    if "message" in result:
+    if "membership" in result:
       logger.critical("REST API access to the ATCC Genome Portal is only available to supporting member!")
       return result
+    print(result)
     if download_link_only == True or download_link_only == "True":
       return data['url']
     elif download_annotations_file == True or download_annotations_file == "True" or download_annotations_dict == True or download_annotations_dict == "True":
@@ -275,10 +454,6 @@ def download_annotations(**kwargs):
         return annotations
       elif download_annotations_file == True or download_annotations_file == 'True':
         output_file_path = os.path.join(download_annotations_path, data['save_as_filename'])
-        # if os.path.isfile(output_file_path):
-        #     if os.path.getsize(output_file_path) > 500:
-        #         print(f"{output_file_path} already exists in download folder! Moving on!")
-        #         return
         if not os.path.isfile(output_file_path) or os.path.getsize(output_file_path) < 500:
           try:
             with open(output_file_path, 'w') as f: 
@@ -293,9 +468,9 @@ def download_annotations(**kwargs):
                         if line.startswith(">"):
                             filtered=line[line.find('assembly_id='):][13:29]
                             if filtered in str(assembly_obj):
-                                logger.log("This file already exists, and the assembly version is the same...re-downloading!")
+                                logger.info("This file already exists, and the assembly version is the same...re-downloading!")
                             else:
-                                logger.log("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
+                                logger.info("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
                                 incoming_id = assembly[assembly.find('assembly_id='):][13:29]
                                 output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
                     with open(output_file_path, 'w') as f: 
@@ -312,8 +487,6 @@ def download_annotations(**kwargs):
       return data
   except emptyResultsError as ere:
     logger.warning(ere)
-
-
 
 def download_metadata(**kwargs):
   if set(kwargs.keys()) == set(["api_key","id"]):
@@ -371,35 +544,37 @@ def get_genomes(api_key) -> Generator:
     return iter_paginated_endpoint("https://genomes.atcc.org/api/genomes", api_key)
 
 def convert_to_genomeid(**kwargs):
-  if "genome_list" in kwargs:
-    genomes = kwargs['genome_list']
-    final_format = {g["id"]: g for g in genomes}
-  if "annotations_list" in kwargs:
-    annotations = kwargs['annotations_list']
-  else:
-    print("""
-      The purpose of this function is to format a list of genomic metadata to it's genomeID linked on the portal
-      To use convert_to_genomeid(), please provide a list that you would like converted to genomeIDs.
-      
-      E.g., formated_genome_list = convert_to_genomeid(genomes=download_all_genomes(api_key=<api_key>)) 
-      ------ returns each genomeID as the list index
-      For example, a list of genomes provided by `download_all_genomes` named: genome_list;
-      -- genome_list[1] may have an ID of "48a898bec49c4b13"...
-      -- running this function will output a new list of genomes, where that genome is now indexed as "genome_list['48a898bec49c4b13']"
-    """)
-    return final_format
+  try:
+    if "genome_list" in kwargs:
+      genomes = kwargs['genome_list']
+      final_format = {g["id"]: g for g in genomes}
+      print("SUCCESS! Your list can been reformatted")
+      return final_format
+    else:
+      print("""
+        The purpose of this function is to format a list of genomic metadata to it's genomeID linked on the portal
+        To use convert_to_genomeid(), please provide a list that you would like converted to genomeIDs.
+
+        E.g., formated_genome_list = convert_to_genomeid(genomes=download_all_genomes(api_key=<api_key>)) 
+        ------ returns each genomeID as the list index
+        For example, a list of genomes provided by `download_all_genomes` named: genome_list;
+        -- genome_list[1] may have an ID of "48a898bec49c4b13"...
+        -- running this function will output a new list of genomes, where that genome is now indexed as "genome_list['48a898bec49c4b13']"
+      """)
+  except:
+    print("Whoops! Something went wrong. Please double check your arguments and make sure you are passing a list of genomic metadata!")
 
 
 def download_all_genomes(**kwargs):
   if "api_key" in kwargs:
-    api_key = kwargs['api_key']
-    genomes=list(get_genomes(api_key))
-    print(f"Fetched {len(genomes):,} genomes")
-    for visibility, count in Counter(
-      [g["primary_assembly"]["visibility"] for g in genomes]
-        ).items():
-            print(f"genomes {visibility=}: {count:,}")
+    apikey = kwargs['api_key']
+    if global_api_key:
+      if str(apikey) != str(global_api_key):
+        apikey = global_api_key 
   else:
+    apikey = global_api_key if global_api_key else set_global_api()
+
+  if not apikey:
     print("""
       To use download_all_genomes(), you must include your api_key, and a page number.
       E.g., download_all_genomes(api_key=YOUR_API_KEY) returns all metadata
@@ -407,11 +582,20 @@ def download_all_genomes(**kwargs):
     return 
   message="Your search returned zero results. Double check that the page you are searching for exists, and try again."
   message2="Your search returned an error. Double check that the page you are searching for exists, and try again."
+  
+  genomes=list(get_genomes(apikey))
+  print(f"Fetched {len(genomes):,} genomes")
+  for visibility, count in Counter(
+    [g["primary_assembly"]["visibility"] for g in genomes]
+      ).items():
+          print(f"genomes {visibility=}: {count:,}")
 
   if "errors" in genomes:
     raise emptyResultsError(message2)
   else:
+    global global_genome_metadata
     data = genomes
+    global_genome_metadata = data
     if data == [] or genomes == []:
       raise emptyResultsError(message)
     else:

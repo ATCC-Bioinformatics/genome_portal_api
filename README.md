@@ -2,13 +2,22 @@
 1. [Introduction](#introduction)
 2. [Getting Started](#getting-started)
 3. [Installation](#installation)
+4. [Setup](#Setup)
 4. [Functions](#functions)
    1. [search_text](#search_text)
    2. [search_product](#search_product)
    3. [download_assembly](#download_assembly)
+      - [Download genome to a fasta file](#download_assembly_fasta_file)
+      - [Get genome as a dict()](#download_assembly_as_a_dictionary)
+      - [Get link to download genome url](#store_link_to_assembly_url)
    4. [download_annotations](#download_annotations)
+      - [Download annotations to a GenBank file](#download_annotations_to_file)
+      - [Get annotations as raw output](#download_annotations_raw_ouput)
+      - [Get url to download annotations file](#get_link_to_annotations_file)
    5. [download_metadata](#download_metadata)
+      - [Download metadata](#download_all_genomes_to_list)
    6. [download_all_genomes](#download_all_genomes)
+      - [Download all genomes to a list](#download_all_genomes_to_list)
    7. [download_catalogue](#download_catalogue)
    8. [search_fuzzy](#search_fuzzy)
 5. [Cookbook](#cookbook)
@@ -17,64 +26,106 @@
    3. [Download all data for fuzzy search results](#ex3)
 
 # Introduction <a name="introduction"></a>
-This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.8. Scripts have been tested in Google Colab using Python 3.7. See the demo python notebook for detailed examples:
+This is a set of python scripts that can be used to access the One Codex api. All scripts were created using Python version 3.9. Scripts have been tested in Google Colab using Python 3.9. See the demo python notebook for detailed examples:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/11hBTFeM4SzHKxPvfiIlwGQHW0YZelfgY?usp=sharing)
 
 # Getting Started <a name="getting-started"></a>
 You will need:
-* a One Codex account at https://genomes.atcc.org/ to obtain an API Key. This is required for all scripts.
+1. An ATCC Genome Portal Suporting Membership
+    * As of May 1, 2024, a supporting membership is required to access the REST API
+    * To purchase a suporting membership, learn more [here](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal)
+2. a One Codex account at https://genomes.atcc.org/ to obtain an API Key. This is required for all scripts.
     * Log in or create an account on https://genomes.atcc.org       
     * Proceed to https://genomes.atcc.org/profile 
     * Click on “Copy API Key”
 
-*   Python 3.7 or higher.
+3.   Python 3.9 or higher.
+        * Scripts were tested on python 3.9, but use of earlier requirements (v3.7+) should not prohibit usage of the API and functionality.
 # Pip install <a name="installation"></a>
+### Conda environment
+```
+conda create -n "genome_portal_api"
+conda activate genome_portal_api
+git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
+pip install /path/to/downloaded/genome_portal_api
+```
+### Python virtual environmnet
 ```
 python -m venv env
 source env/bin/activate
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
-pip install /path/to/genome_portal_api
+pip install /path/to/downloaded/genome_portal_api
 ```
+# Setup <a name="Setup"></a>
+Activate your evironment, load in the packages / functions, and get started!
+```
+conda activate genome_portal_api
+python 
+
+# Below is ran from within a python session
+from genome_portal_api import * #Loads up all functions of the API
+```
+
 # Functions <a name="functions"></a>
-### search_text() <a name="search_text"></a>
-The `search_text()` function can be used to find assemblies and their assocaiated metadata that match a search term. The search term can either be a full- or sub-string of an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
+## search_text() <a name="search_text"></a>
+The `search_text()` function can be used to find assemblies and their associated metadata that match a search term. The search term can either be a full- or sub-string of an organism name or an exact match of the ATCC catalog number as a character string. For the example below any of the following search terms could have been used to produce a list which contained Yersinia entercolitica: "Yersinia", "enter", "coli", "entercolitica", or "27729".
+
+**To test out what search terms might help, first try using the "Search for a genome" bar on the [ATCC Genome Portal](https://genomes.atcc.org/).**
+
 Usage:
 ```
 To use search_text(), you must include your api key, a search string and a boolean id_only flag. If the id_only boolean is set 
 to True, then only the assembly id is retrieved.
+
 E.g., search_text(api_key=YOUR_API_KEY,text="coli",id_only="False") return resulting metadata
 E.g., x = search_text(api_key=YOUR_API_KEY,text="asp",id_only="True") return list of assembly ids
 ```
+
+<details>
+<summary>Advanced</summary>
+
 Example:
 ```
 search_text_results=search_text(api_key=api_key,text="coli",id_only=False)
 ```
 `search_text_results` is a list of dictionary objects. The first element is:
 ```
-{'attributes': {'asm_launch': True,
-  'atcc_metadata': {'antibiotic_resistance': None,
-   'antigenic_prop': 'Biotype 1 serotype 8',
-   'bsl': 2,
-   'catalog_number': '27729',
-   'genotype': None,
-   'gold': True,
-   'isolation_new_web': 'Human blood Belgium November 7 1972',
-   'notes': None,
-   'sequencing_technology': None,
-   'type_strain': False},
-  'biosafety_level': 2,
-  'catalog_number': '27729',
-  'dna_item': '27729D-5',
-  'product_url': 'https://www.atcc.org/Products/All/27729',
-  'source_item': '27729'},
- 'collection_name': 'bacteriology',
- 'description': None,
- 'id': '099e5acebc284d19',
- 'name': 'ATCC® 27729™',
- 'preferred_taxonomy_name': None,
- 'product_id': '27729',
- 'product_url': 'https://www.atcc.org/Products/All/27729D-5',
- 'taxon_name': 'Yersinia enterocolitica'}
+{"attributes": {
+        "atcc_metadata": {
+            "amr_intermediate": [],
+            "amr_resistant": [],
+            "amr_susceptible": [],
+            "antibiotic_resistance": null,
+            "antigenic_prop": "Biotype 1",
+            "bsl": 2,
+            "catalog_number": "27729",
+            "drug_repository": null,
+            "genotype": null,
+            "gold": true,
+            "isolation_new_web": "Blood; isolated November 7, 1972",
+            "notes": null,
+            "preferred_taxonomy_name": null,
+            "product_url": "https://www.atcc.org/Products/All/27729D-5",
+            "sequencing_technology": null,
+            "tag_names": [
+                "MSA Component"
+            ],
+            "tax_id": "630",
+            "type_strain": false
+        }
+      },
+  "collection_name": "bacteriology",
+  "created_at": "2019-05-14T17:08:28.498440+00:00",
+  "description": null,
+  "id": "099e5acebc284d19",
+  "name": "ATCC 27729",
+  "product_id": "27729",
+  "product_url": "https://www.atcc.org/Products/All/27729D-5",
+  "taxon_id": "630",
+  "taxon_name": "Yersinia enterocolitica"
+}
+... "Shortened for cleanliness"
+
 ```
 Specific values from each dictionary can be accessed as follows:
 ```
@@ -87,7 +138,9 @@ Output:
  ('Mycolicibacterium fortuitum subsp. fortuitum', '6841'),
  ...
 ```
-### search_product() <a name="search_product"></a>
+</details>
+
+## search_product() <a name="search_product"></a>
 The `search_product()` function is similar to the search_text() function, except it looks for assemblies that match a particular product id. The product id used must be an **exact** match to return correct results.
 ```
 To use search_product(), you must include your api_key, a product_id, and a boolean id_only flag. If the 
@@ -95,6 +148,10 @@ id_only boolean is set to True, then only the assembly id is retrieved.
 E.g., search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=False) return resulting metadata
 E.g., x = search_product(api_key=YOUR_API_KEY,product_id=35638,id_only=True) return only the assembly id
 ```
+
+<details>
+<summary>Advanced</summary>
+
 Example:
 ```
 product_metadata = search_product(api_key=api_key,product_id="BAA-335", id_only=False)
@@ -102,49 +159,71 @@ product_metadata
 ```
 `product_metadata`  holds the following dictionary:
 ```
-[{'attributes': {'atcc_metadata': {'antibiotic_resistance': None,
-    'antigenic_prop': 'Serogroup B',
-    'bsl': 2,
-    'catalog_number': 'BAA-335',
-    'genotype': None,
-    'gold': None,
-    'isolation_new_web': 'Human infection',
-    'notes': None,
-    'sequencing_technology': None,
-    'type_strain': False},
-   'product_url': 'https://www.atcc.org/Products/All/BAA-335',
-   'scraped_organism_name': 'Neisseria meningitidis (Albrecht and Ghon) Murray (ATCC® BAA-335™)'},
-  'collection_name': 'bacteriology',
-  'description': None,
-  'id': '261b0e41db924d0f',
-  'name': 'ATCC® BAA-335™',
+[{"attributes": {
+    "atcc_metadata": {
+    "amr_intermediate": [],
+    "amr_resistant": [],
+    "amr_susceptible": [],
+    "antibiotic_resistance": null,
+    "antigenic_prop": null,
+    "bsl": 2,
+    "catalog_number": "BAA-335",
+    "drug_repository": null,
+    "genotype": null,
+    "gold": null,
+    "isolation_new_web": "Infection",
+    "notes": null,
+    "preferred_taxonomy_name": null,
+    "product_url": "https://www.atcc.org/products/baa-335",
+    "sequencing_technology": null,
+    "tag_names": ["MSA Component"],
+    "tax_id": "487",
+    "type_strain": false
+      }
+    },
+  "collection_name": "bacteriology",
+  "created_at": "2020-02-26T18:58:47.303264+00:00",
+  "description": null,
+  "id": "261b0e41db924d0f",
+  "name": "ATCC BAA-335",
   'preferred_taxonomy_name': None,
   'product_id': 'BAA-335',
   'product_url': 'https://www.atcc.org/Products/All/BAA-335',
   'taxon_name': 'Neisseria meningitidis'}]
+
+... "Intentionally shortened for cleanliness"
 ```
-### download_assembly() <a name="download_assembly"></a>
-The download_assembly() function uses an assembly id to either obtain the link to download an assembly or download an assembly directly.
+</details>
+
+## download_assembly() <a name="download_assembly"></a>
+The download_assembly() function uses an genome id to either obtain the link to download an assembly or download an assembly directly.
 ```
-To use download_assembly(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
-download_assembly flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved. 
-If the download_assembly boolean is set to True, then only the assembly download link is retrieved.
-E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_assembly="False") return assembly url
-E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="True") return assembly dict 
-E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_assembly="False") return raw json result
+  To use download_assembly(), you must include:
+  - api_key=<Your api_key>
+  - id=<GenomeID>
+  One or more of the flags below should be present:
+    - Boolean 'download_link_only' flag     (returns temporary assembly url) 
+    - Boolean 'download_assembly_dict' flag (returns assembly file dictionary; [key]=header,[value]=sequence)
+    - Boolean 'download_assembly_file' flag (download assembly fasta file to provided path "below")
+      - 'download_assembly_path'  (Needed for 'download_assembly_file'; quoted str path to folder) 
+  E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_assembly_file=True,download_assembly_path="/directory/for/download/") downloads an assembly file to provided path  
+  E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only=True) return assembly url
+  E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_assembly_dict=True) return assembly dict 
+  E.g., download_assembly(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_assembly_dict=True) return raw json result
 ```
-Download link example:
+
+<details>
+<summary>Advanced</summary>
+
+### Download fasta file example: <a name="download_assembly_fasta_file"></a>
 ```
-assembly_download_link=download_assembly(api_key=api_key,id=search_product_results_assembly_id,download_link_only=True,download_assembly=False)
-assembly_download_link
+download_assembly(api_key=api_key,id=genome_id,download_assembly_file=True,download_assembly_path="/path/to/folder")
 ```
-`assembly_download_link` is the url to access in order to download the assembly:
+This will download the fasta file directly to the folder provided for the "download_assembly_path" argument
+
+### Download assembly as a dictionary example: <a name="download_assembly_as_a_dictionary"></a>
 ```
-https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-files/72h/assembly_5_genome_0_taxon_0/Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822_assembly_4a3fc3892d33411f.fasta?response-content-disposition=attachment%3B%20filename%3D%22Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822.fasta%22&AWSAccessKeyId=AKIA6GPUEB7CLCIK2XEI&Expires=1648018077&Signature=biFOkbIIT2VJ0YHJtyk72ZCjwFo%3D
-```
-Download assembly example:
-```
-assembly=download_assembly(api_key=api_key,id=search_product_results_assembly_id,download_link_only=False,download_assembly=True)
+assembly=download_assembly(api_key=api_key,id=genome_id,download_assembly_dict=True)
 for contig in assembly:
   print(contig)
   print(assembly[contig][0:200])
@@ -156,28 +235,45 @@ GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACG
 >4a3fc3892d33411f_2 assembly_id="4a3fc3892d33411f" genome_id="a614b8c4a4664441" atcc_catalog_number="ATCC 700822" species="Yersinia enterocolitica subsp. enterocolitica" contig_number="2" topology="linear"
 TTCAATGAATCCATTCTGCTGCGGGTTTACCCGGTTGAATATGGCACAAAGTAATACCATTATATTCACAGTAATTCAGTAAGTTAACCGATATCAGTTCCGGACCATTATCAACTCTAATTTGCTGAGGCTGTCCACGTTCTTCTTTCAGACGTTCAAGTACGCGGATCACTCTGTTTGCTGGCAAAGAAGTATCGACT
 ```
-### download_annotations() <a name="download_annotations"></a>
+The output from the above code block prints each link of the .gbk file.
+### Download link example: <a name="store_link_to_assembly_url"></a>
+```
+assembly_download_link=download_assembly(api_key=api_key,id=genome_id,download_link_only=True)
+assembly_download_link
+```
+`assembly_download_link` is the url to access in order to download the assembly:
+```
+https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-files/72h/assembly_5_genome_0_taxon_0/Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822_assembly_4a3fc3892d33411f.fasta?response-content-disposition=attachment%3B%20filename%3D%22Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822.fasta%22&AWSAccessKeyId=AKIA6GPUEB7CLCIK2XEI&Expires=1648018077&Signature=biFOkbIIT2VJ0YHJtyk72ZCjwFo%3D
+```
+</details>  
+
+## download_annotations() <a name="download_annotations"></a>
 Similar to `download_assembly()`, an assembly id is required for the `download_annotations()`, which can be used to either obtain the download link or to download the annotations directly. The annotations are in .gbk format.
 ```
-To use download_annotations(), you must include your api_key, an assembly ID, a boolean download_link_only flag, and a boolean 
-download_annotations flag. If the download_link_only boolean is set to True, then only the assembly download link is retrieved.
-If the download_annotations boolean is set to True, then only the assembly download link is retrieved.
-E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True",download_annotations="False") return annotation data url 
-E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="True") return the raw genbank file
-E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="False",download_annotations="False") return the raw json result
+  To use download_annotations(), you must include:
+    - api_key=<Your api_key>
+    - id=<GenomeID>
+  One or more of the flags below should be present:
+    - Boolean 'download_link_only' flag        (returns temporary annotations url) 
+    - Boolean 'download_annotations_dict' flag (returns GenBank raw string)
+    - Boolean 'download_annotations_file' flag (downloads GenBank file to provided path "below")
+      - 'download_annotations_path'           (Needed for 'download_annotations_file'; quoted str path to download GenBanks)\n
+  E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_link_only="True") return annotation data url 
+  E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_annotations_dict="True") return the raw genbank file
+  E.g., download_annotations(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee,download_annotations_file="True",download_annotations_path="/directory/for/download") Download the GenBank file to provided path.
 ```
-Download annotation link example:
+<details>
+<summary>Advanced</summary>
+
+### Download annotations to a GenBank file example:  <a name="download_annotations_to_file"></a>
 ```
-annotations_download_link=download_annotations(api_key=api_key,id=search_product_results_assembly_id,download_link_only=True,download_annotations=False)
-annotations_download_link
+download_annotations(api_key=api_key,id=genome_id,download_annotations_file=True,download_annotations_path="/path/to/folder")
 ```
-`annotations_download_link` is the url to access in order to download the annotations:
+The above will directly download a GenBank file to your provided path.
+
+### Download annotations output directly example:  <a name="download_annotations_raw_ouput"></a>
 ```
-https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-files/72h/assembly_5_genome_0_taxon_0/Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822_assembly_0518695e1d044c30.gbk?response-content-disposition=attachment%3B%20filename%3D%22Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822.gbk%22&AWSAccessKeyId=AKIA6GPUEB7CLCIK2XEI&Expires=1648018483&Signature=ZYq0cN6ONumf2iHsEQx7%2F4hsctY%3D
-```
-Download annotations directly example:
-```
-annotations=download_annotations(api_key=api_key,id=search_product_results_assembly_id,download_link_only=False,download_annotations=True)
+annotations=download_annotations(api_key=api_key,id=genome_id,download_annotations_dict=True)
 for line in annotations.split("\n"):
   print(line)
 ```
@@ -227,15 +323,30 @@ with open("annotations.gbk", "w") as f:
   for line in annotations.split("\n"):
     f.write(line+"\n")
 ```
-### download_metadata() <a name="download_metadata"></a>
+### Get annotation link example:  <a name="get_link_to_annotations_file"></a>
+```
+annotations_download_link=download_annotations(api_key=api_key,id=genome_id,download_link_only=True)
+annotations_download_link
+```
+`annotations_download_link` is the url to access in order to download the annotations:
+```
+https://s3.amazonaws.com/refgenomics-userdata-production-encrypted/temporary-files/72h/assembly_5_genome_0_taxon_0/Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822_assembly_0518695e1d044c30.gbk?response-content-disposition=attachment%3B%20filename%3D%22Yersinia_enterocolitica_subsp_enterocolitica_ATCC_700822.gbk%22&AWSAccessKeyId=AKIA6GPUEB7CLCIK2XEI&Expires=1648018483&Signature=ZYq0cN6ONumf2iHsEQx7%2F4hsctY%3D
+```
+</details>
+
+## download_metadata() <a name="download_metadata"></a>
 `download_metadata()` should be used to obtain the detailed metadata including qc statistics, contig length(s), etc. for any given assembly id.
 ```
 To use download_metadata(), you must include your api_key and an assembly ID.
 E.g., download_metadata(api_key=YOUR_API_KEY,id=304fd1fb9a4e48ee) return metadata
 ```
+<details>
+<summary>Advanced</summary>
+
+### Download metadata example <a name="download_metadata_as_dict"></a>
 The detailed metadata can be downloaded as follows:
 ```
-assembly_metadata = download_metadata(api_key=api_key,id=search_product_results_assembly_id)
+assembly_metadata = download_metadata(api_key=api_key,id=genome_id)
 assembly_metadata
 ```
 `assembly_metadata` is a dictionary:
@@ -270,18 +381,45 @@ assembly_metadata
    ...
    ...
 ```
-### download_all_genomes() - Deprecate? <a name="download_all_genomes"></a>
+</details>
+
+## download_all_genomes() <a name="download_all_genomes"></a>
 download_all_genomes() allows the user to download all genomes available on https://genomes.atcc.org without prior knowledge of any associated metadata.
 ```
-To use download_all_genomes(), you must include your api_key, and a page number.
-E.g., download_all_genomes(api_key=YOUR_API_KEY,page=1,output="output.txt") return page 1 of metadata
+  To use download_all_genomes(), you must include your api_key, and a page number.
+  
+  E.g., download_all_genomes(api_key=YOUR_API_KEY) returns all metadata
 ```
+
+<details>
+<summary>Advanced</summary>
+
+### Download all genome entries as list example: <a name="download_all_genomes_to_list"></a>
+Running the below code will generate a list of every genome's metadata
+```
+genomes=download_all_genomes(api_key='YOUR_API_KEY')
+```
+This will output a stored variable `genomes`. This object is a list of dictionaries representing all genomes available in the portal. This will also print a message about the collection:
+
+> Fetched 4,500 genomes  
+> genomes visibility='public': 4,500
+
+This list can then be leveraged into `download_assembly` or `download_annotations` in order to download each item to file. Each genome's ID can be found in the "id" keys of each dictionary:
+```
+genomes[0]['id']
+> '21846cfe916b4f18'
+```
+</details>
+
 ### download_catalogue() <a name="download_catalogue"></a>
 `download_catalogue()` allows the user to download the entire catalogue available on https://genomes.atcc.org and either return a list of all assembly metadata or save the list to a pkl file. The complete catalogue can be returned from the function as a list by not including an output path. The complete catalogue can be saved to a .pkl file by including an output path. **Saving to file is required to run the search_fuzzy() function**.
 ```
 To use download_catalogue(), you must include your api_key.
 E.g., download_catalogue(api_key=YOUR_API_KEY,output="output.txt")
 ```
+<details>
+<summary>Advanced</summary>
+
 The entire catalogue can be downloaded as follows:
 ```
 catalogue = download_catalogue(api_key=api_key)
@@ -314,6 +452,9 @@ In order to use search_fuzzy(), the catalogue must be saved to file. For example
 ```
 download_catalogue(api_key=api_key,output="path/to/catalogue.pkl")
 ```
+
+</details>
+
 ### search_fuzzy() <a name="search_fuzzy"></a>
 `search_fuzzy()` allows the user to search for a term using fuzzy matching. The function searches through every value in the metadata nested dictionary and looks for a fuzzy match with the search term. To use this function, you must have downloaded the complete catalogue using download_catalogue(api_key=api_key,output="path/to/catalogue.pkl") because the catalogue path is a required argument.
 ```
@@ -338,6 +479,10 @@ match_list=search_fuzzy(term="yursinia",catalogue_path="path/to/catalogue.pkl")
  ...
 ```
 # Cookbook <a name="cookbook"></a>
+
+<details>
+<summary>Click to view cookbook</summary>
+
 ## Download all the data for all *E. coli* assemblies <a name="ex1"></a>
 First, we search for Escherichia coli using `search_text()`. Then we iterate through the results list, create a dictionary entry for each assembly, and then download and store the assembly, annotations, and metadata. The first 3 assemblies are downloaded below.
 ```
@@ -494,3 +639,4 @@ SOURCE      https://genomes.atcc.org/genomes/099e5acebc284d19
 Some example metadata:
 taxon: {'name': 'Yersinia enterocolitica', 'parents': [{'name': 'Yersinia', 'rank': 'genus', 'tax_id': 629}, {'name': 'Yersiniaceae', 'rank': 'family', 'tax_id': 1903411}, {'name': 'Enterobacterales', 'rank': 'order', 'tax_id': 91347}, {'name': 'Gammaproteobacteria', 'rank': 'class', 'tax_id': 1236}, {'name': 'Proteobacteria', 'rank': 'phylum', 'tax_id': 1224}, {'name': 'Bacteria', 'rank': 'superkingdom', 'tax_id': 2}, {'name': 'cellular organisms', 'rank': 'no rank', 'tax_id': 131567}], 'rank': 'species', 'tax_id': 630}
 ```
+</details>
