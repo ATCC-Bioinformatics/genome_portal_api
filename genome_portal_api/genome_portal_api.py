@@ -10,7 +10,6 @@ import requests
 import glob
 from typing import Any, Dict, Generator, List, Optional
 from collections import Counter
-import json
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,9 +24,20 @@ stream_handler.setFormatter(formatter)
 
 logger.addHandler(stream_handler)
 
+
+global global_genome_metadata
+global global_api_key
+
+
 class emptyResultsError(Exception):
   def __init__(self, message):
     self.message = message
+
+def get_global_metadata():
+  return global_genome_metadata
+
+def get_global_apikey():
+  return global_api_key
 
 
 def set_global_api(apikey=None): #! Intended to 
@@ -65,13 +75,15 @@ def load_all_metadata(genome_list=None):
   """
   global global_genome_metadata
   ## Check to see if set as enviornment variable
-  if not global_genome_metadata:
+  try:
+    if not global_genome_metadata:
+      global_genome_metadata=download_all_genomes()
+      logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
+    else:
+      logger.info(f"All genome have been already been stored under the variable 'global_genome_metadata' ")
+      logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
+  except NameError:
     global_genome_metadata=download_all_genomes()
-    logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
-  else:
-    logger.info(f"All genome have been already been stored under the variable 'global_genome_metadata' ")
-    logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
-
 
 
 def json_search(nested_dict, term): #! Intended to iteratively search JSON key:value schema in genome metadata
@@ -100,7 +112,10 @@ def search_product(**kwargs):
       if str(apikey) != str(global_api_key):
         apikey = global_api_key 
   else:
-      apikey = global_api_key if global_api_key else set_global_api()
+      try:
+        apikey = global_api_key 
+      except NameError:
+        apikey = set_global_api()
   id_only = kwargs['id_only'] if 'id_only' in kwargs else True
   if 'product_id' in kwargs:
     product_id = kwargs['product_id']
@@ -160,8 +175,10 @@ def search_text(**kwargs):
       if str(apikey) != str(global_api_key):
         apikey = global_api_key 
   else:
-      apikey = global_api_key if global_api_key else set_global_api()
-  
+      try:
+        apikey = global_api_key
+      except NameError:
+        apikey = set_global_api()
   id_only = kwargs['id_only'] if 'id_only' in kwargs else True
   if 'text' in kwargs:
     text = kwargs['text']
@@ -224,8 +241,10 @@ def deep_search(**kwargs):
       if str(apikey) != str(global_api_key):
         apikey = global_api_key 
   else:
-      apikey = global_api_key if global_api_key else set_global_api()
-  
+      try:
+        apikey = global_api_key
+      except NameError:
+        apikey = set_global_api()
   # Method to search. Defaults to JSON format of typical KEY:VALUE
   if "method" in kwargs:
     method=kwargs['method'].lower()
@@ -236,8 +255,12 @@ def deep_search(**kwargs):
   id_only = kwargs['id_only'] if 'id_only' in kwargs else True
   
   # If global genome list is empty, repull all JSONs
-  genome_list = global_genome_metadata if global_genome_metadata else load_all_metadata()
-  
+  try:
+    genome_list = global_genome_metadata
+  except NameError:
+    load_all_metadata()
+    genome_list = global_genome_metadata
+
   if 'text' in kwargs:
     text = kwargs['text']
   else:
@@ -572,8 +595,10 @@ def download_all_genomes(**kwargs):
       if str(apikey) != str(global_api_key):
         apikey = global_api_key 
   else:
-    apikey = global_api_key if global_api_key else set_global_api()
-
+    try:
+      apikey = global_api_key
+    except NameError:
+      apikey = set_global_api()
   if not apikey:
     print("""
       To use download_all_genomes(), you must include your api_key, and a page number.
