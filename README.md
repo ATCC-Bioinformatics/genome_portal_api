@@ -820,6 +820,8 @@ By providing a list of genomes, `tabulate()` will then convert the inputed liste
 
 [4890 rows x 44 columns]
 ```
+</details></details> <br />  
+
 
 # Cookbook <a name="cookbook"></a>
 
