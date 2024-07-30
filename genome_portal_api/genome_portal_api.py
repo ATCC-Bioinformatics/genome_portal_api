@@ -99,6 +99,7 @@ def load_all_metadata():
       logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
   except NameError:
     global_genome_metadata=download_all_genomes()
+    logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
 
 
 
@@ -186,9 +187,11 @@ def search_product(**kwargs):
     return
 
   message="Your search returned zero results. This function uses exact string matching on ATCC catalog numbers. Check your spelling and try again. \
-           If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
+           If you continue to have issues, try deep_search() to determine whether or not the genome is available from https://genomes.atcc.org."
   
   membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
+
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
 
   try:
     cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {apikey}\""
@@ -216,6 +219,9 @@ def search_product(**kwargs):
           return data
         else:
           return tabulate(data)
+    else:
+      logger.warning(kwarg_message)
+      return
   except emptyResultsError as ere:
     logger.warning(ere)
 
@@ -259,6 +265,9 @@ def search_text(**kwargs):
           Check your spelling and try again. If you continue to have issues, try search_fuzzy() to determine whether or not the genome is available from https://genomes.atcc.org."
   
   membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
+  
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+
   try:
     page=1
     all_data=[]
@@ -296,6 +305,9 @@ def search_text(**kwargs):
         else:
           all_data += data
           page+=1
+      else:
+        logger.warning(kwarg_message)
+        return
   except emptyResultsError as ere:
     logger.warning(ere)
 
@@ -334,6 +346,8 @@ def deep_search(**kwargs):
   message="Your search returned zero results. This function uses exact string matching on the JSON metadata for each genome. \
   Check your spelling and try again. If you continue to have issues, try downloading an assembly metadata file to ensure the search term is present."
   
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+
   if "api_key" in kwargs:
     apikey = kwargs['api_key']
   else:
@@ -350,6 +364,9 @@ def deep_search(**kwargs):
   # Store ID only as true
   output = kwargs['output'] if 'output' in kwargs else "id"
   # If global genome list is empty, repull all JSONs
+  if output not in ['id','json','table'] or mode not in  ['text','str']:
+    logger.warning(kwarg_message)
+    return
   try:
     genome_list = global_genome_metadata
   except NameError:
@@ -401,6 +418,9 @@ def download_assembly(**kwargs):
     return
 
   membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
+
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+
 
   if "api_key" in kwargs:
     apikey = kwargs['api_key']
@@ -479,7 +499,7 @@ def download_assembly(**kwargs):
       else:
         return assembly_obj
     else:
-      logger.log("You may have forgotten or mispelled a download argument!")
+      logger.warning(kwarg_message)
       return
   except emptyResultsError as ere:
     logger.warning(ere)
@@ -511,6 +531,9 @@ def download_annotations(**kwargs):
   
   membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
   
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+
+
   if "api_key" in kwargs:
     apikey = kwargs['api_key'] 
   else:
@@ -583,8 +606,8 @@ def download_annotations(**kwargs):
       else:
         return annotations
     else:
-      logger.warning("You may have forgotten or mispelled a download argument!")
-      return data
+      logger.warning(kwarg_message)
+      return
   except emptyResultsError as ere:
     logger.warning(ere)
 
@@ -615,6 +638,9 @@ def download_metadata(**kwargs):
 
   membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
   
+  kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+
+
   if "api_key" in kwargs:
     apikey = kwargs['api_key']
   else:
@@ -627,6 +653,9 @@ def download_metadata(**kwargs):
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {apikey}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}"
   cmd += " 2> /dev/null"
+  if output not in ['dict','table']:
+    logger.warning(kwarg_message)
+    return
   try:
     result_stage = os.popen(cmd)
     result = result_stage.read()

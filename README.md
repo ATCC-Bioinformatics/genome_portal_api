@@ -1117,7 +1117,7 @@ Harmon CL, Castlebury L, Boundy-Mills K, et al. Standards of Diagnostic Validati
 
 <a href="https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal"><img src="https://github.com/ATCC-Bioinformatics/genome_portal_api/blob/dev/images/SBC_Team_Photo_12Jul2024.jpg" alt="Clickable-Team_members_redirect" /></a>
 
-If you found a bug with this REST-API, would like new features, or have questions related to this GitHub, please fill out a [Issue Template](https://github.com/ATCC-Bioinformatics/genome_portal_api/tree/dev/.github/ISSUE_TEMPLATE) form if applicable, and post the the [issues](https://github.com/ATCC-Bioinformatics/genome_portal_api/issues) section of this repository.
+If you found a bug with this REST-API, would like new features, or have questions related to this GitHub, please fill out an [Issue Template](https://github.com/ATCC-Bioinformatics/genome_portal_api/tree/dev/.github/ISSUE_TEMPLATE) form if applicable, and post the [issues](https://github.com/ATCC-Bioinformatics/genome_portal_api/issues) section of this repository.
 
 For questions, concerns, or anything ATCC Genome Portal related, please e-mail us at: `nextgen@atcc.org`  
 
