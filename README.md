@@ -1,49 +1,62 @@
+# ATCC Genome Portal REST API 
 <a href="https://genomes.atcc.org/"><img src="https://github.com/ATCC-Bioinformatics/genome_portal_api/blob/dev/images/Genome Portal_728x90.jpg" alt="Clickable-Awesome-Portal-portal" /></a>
 
 # Table of Contents
-1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Installation](#installation)
-4. [Setup](#Setup)
+* [Introduction](#introduction)
+* [Getting Started](#getting-started)
+* [Installation](#installation)
+* [Setup](#Setup)
     - [Setting an API key](#setting_api_key)
-4. [Tips and FAQ](#FAQ)
-4. [Functions](#functions)  
-   1. [search_product](#search_product)
+* [Tips and FAQ](#FAQ)
+* [Functions](#functions)  
+   * [search_product](#search_product)   
+   _find a genome by ATCC Product ID_
       - [Return results as JSON](#search_product_json)
       - [Return results as a table](#search_product_table)
-   2. [search_text](#search_text)
+   * [search_text](#search_text)  
+   _find a genome(s) by string matching_
       - [Return results as JSON](#search_text_json)
       - [Return results as a table](#search_text_table)
-   3. [download_assembly](#download_assembly)
+   * [download_assembly](#download_assembly)  
+   _download an assembly file_
       - [Download genome to a fasta file](#download_assembly_fasta_file)
       - [Get genome as a dict()](#download_assembly_as_a_dictionary)
-   4. [download_annotations](#download_annotations)
+   * [download_annotations](#download_annotations)  
+   _download an annotations file_
       - [Download annotations to a GenBank file](#download_annotations_to_file)
       - [Get annotations as raw output](#download_annotations_raw_ouput)
-   5. [download_metadata](#download_metadata)
+   * [download_metadata](#download_metadata)  
+   _pull the JSON metadata of a singular genome_
       - [Download metadata](#download_all_genomes_to_list)
-   6. [download_all_genomes](#download_all_genomes)
+   * [download_all_genomes](#download_all_genomes)  
+   _pull the JSON metadata for ALL genomes_
       - [download all genome metadata to a list](#download_all_genomes_to_list)
       - [Convert list to GenomeID Indexing](#convert_to_genomeid)
-   8. [deep_search](#deep_search)
+   * [deep_search](#deep_search)  
+   _search ALL genome metadata for a string or value (SUPPORTS FUZZY)_
       - [Fuzzy search with incorrect spelling](#deep_search_fuzzy)
       - [Search for a biosafety level in table output](#deep_search_fuzzy_contig)
-   9. [tabulate](#tabulate)  
-          - 
-5. [Cookbook](#cookbook)
-   1. [Download all the data for all *E. coli* assemblies](#ex1)
-   2. [Download all the data for product 700822](#ex2)
-   3. [Download all data for fuzzy search results](#ex3)
+   * [tabulate](#tabulate)  
+    _convert a list of genome dictionaries to a formatted table_
+        - [Convert any list to a table](#tabulate_example)
+* [Cookbook](#cookbook)
+   * [Download all the data for all *E. coli* assemblies](#ex1)
+   * [Download all the data for 5 BSL-2 *E. coli* assemblies with the most antibiotic resistance](#ex_bsl)
+   * [Download all the data for product 700822, in the new table format](#ex2)
+   * [Download all data for fuzzy search results](#ex3)
+* [Citation](#citation)
+* [Contact Us](#contact-us)
 
 # Introduction <a name="introduction"></a>
-This is a set of python scripts that can be used to access the ATCC Genome Portal through the One Codex REST-API. This API provides extensively more data than can be seen on the ATCC Genome Portal GUI. [While One Codex documentation](https://docs.onecodex.com/en/articles/5812163-atcc-genome-portal-api-guide) exists to detail the exact endpoints, this repo serves as prebuilt and formatted wrappers to navigate the REST API.
+This repository serves as a collection of python scripts that can be used to access the ATCC® Genome Portal through the One Codex REST-API.   
 
-All scripts were created using Python version 3.9. Scripts have been tested in Google Colab using Python 3.9. See the demo python notebook for detailed walkthroughs: \
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/11hBTFeM4SzHKxPvfiIlwGQHW0YZelfgY?usp=sharing)
+Accessing the ATCC Genome Portal through the API provides **extensively** more data than can be seen on the ATCC® Genome Portal GUI. [While One Codex documentation](https://docs.onecodex.com/en/articles/5812163-atcc-genome-portal-api-guide) exists to detail the exact endpoints, this repo serves as prebuilt and formatted wrappers to navigate the REST API. All scripts were created and tested using Python version 3.9. 
+<!-- Scripts have been tested in Google Colab using Python 3.9. See the demo python notebook for detailed walkthroughs: \
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/11hBTFeM4SzHKxPvfiIlwGQHW0YZelfgY?usp=sharing) -->
 
 # Getting Started <a name="getting-started"></a>
 You will need:
-1. An ATCC Genome Portal Suporting Membership
+1. An ATCC® Genome Portal Suporting Membership
     * As of May 1, 2024, a supporting membership is required to access the REST API
     * To purchase a suporting membership, learn more [here](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal)
 2. a One Codex account at https://genomes.atcc.org/ to obtain an API Key. This is required for all scripts.
@@ -69,17 +82,18 @@ git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/downloaded/genome_portal_api_folder
 ```
 # Setup <a name="Setup"></a>
-Activate your evironment, load in the packages / functions, and get started!
+Activate your evironment, load in all the functions, and get started!
 ```
 conda activate genome_portal_api
 python 
 
 # Below is ran from within a python session
->>> from genome_portal_api import * #Loads up all functions of the API
+from genome_portal_api import * #Loads up all functions of the API
 ```
 ## Setting a global api key <a name="setting_api_key"></a>
-**If you have the `global_api_key` variable set in your environment, you do not need to provide an `api_key` argument to any function.** If this is your first time using the API, we advise to set and export your API key under the global variable `ATCC_GENOME_PORTAL_API_KEY` in your .bashrc file. To verify your API key is set, call the function `get_global_apikey()`.
+**If you have the `global_api_key` variable set in your environment, you do not need to provide an `api_key` argument to any function.  To verify your API key is set, call the function `get_global_apikey()`**.  
 
+If this is your first time using the API, we advise to set and export your API key under the global variable `ATCC_GENOME_PORTAL_API_KEY` in your .bashrc file.
 Otherwise, we recommend setting your api_key globally on script startup. This can be done a few ways below:
 ```
 Best Option:
@@ -118,8 +132,7 @@ set_global_api(api_key='yourapikey')
 ```
 
 ### -- Which output is best???
-Simply put, whichever is best for you! **For most functions, there is a choice of output.**  
-I will breakdown the output here:
+Simply put, whichever is best for you! **For most functions, there is a choice of output.**  The output can be broken down here:
 
 * #### table:
 
@@ -130,22 +143,22 @@ Personally this is our favorite output mode. In this mode, a pandas dataframe is
 This is like legendary mode...There is much more data behind each genome, but reporting on it for most use-cases is challenging for brevity. We are working on a wiki to explain each metadata field in the JSON, but feel free to raise an issue if you need help!
 * #### id:  
 
-Bread and butter! One of the most-used cases in the past API behavior, this output is strictly a list of IDs, so that each list entry is the ATCC catalog number followed by the genomeID. ex( ['ATCC 10536:996d977f03724ce6', ...])
+Bread and butter! One of the most-used cases in the past API behavior, this output is strictly a list of IDs, so that each list entry is the ATCC® catalog number followed by the genomeID. ex( ['ATCC 10536:996d977f03724ce6', ...])
 
 </details>  <br />
 
 # Functions <a name="functions"></a>
 ## search_product() <a name="search_product"></a>
-**The `search_product()` function is intended to give an exact match to an ATCC Catalog number / product ID.**  
+**The `search_product()` function is intended to give an exact match to an ATCC® Catalog number / product ID.**  
 The product id used in this function must be an **exact** match to return results. Expected output of this function is a single item list, signifying the matched genome for that catalog number.  
-This function mimics the GUI ability of using the "Search for a genome" bar on the ATCC Genome Portal set to the "Catalog Number" filter.
+This function mimics the GUI ability of using the "Search for a genome" bar on the ATCC® Genome Portal set to the "Catalog Number" filter.
 
 <details markdown="1">
 <summary>Usage</summary>
 
 ```
-search_product() is intended for EXACT matching of ATCC product numbers.
-This mimics the function of using the search bar on the ATCC Genome Portal set to CATALOG NUMBER 
+search_product() is intended for EXACT matching of ATCC® product numbers.
+This mimics the function of using the search bar on the ATCC® Genome Portal set to CATALOG NUMBER 
       
 --------- USAGE ---------
 Required arguments:
@@ -159,10 +172,10 @@ Optional arguments:
         Your Genome Portal APIKey [default looks for global_api_key]       
 
 EXAMPLES:
-  > search_product(product_id='35638') Return resulting Genome ID for ATCC 35638
+  > search_product(product_id='35638') Return resulting Genome ID for ATCC® 35638
   > search_product(product_id='35638', api_key='apikey') Same as above, but this time with a new apikey
-  > search_product(product_id='35638', output='json') Return resulting JSON metadata for ATCC 35638
-  > search_product(product_id='35638', output='table') Return resulting JSON metadata for ATCC 35638 in a informative table
+  > search_product(product_id='35638', output='json') Return resulting JSON metadata for ATCC® 35638
+  > search_product(product_id='35638', output='table') Return resulting JSON metadata for ATCC® 35638 in a informative table
 ```
 
 <details>
@@ -236,7 +249,7 @@ search_product_table = search_product(product_id="BAA-335",output="table")
 
 ## search_text() <a name="search_text"></a>
 **The `search_text()` function can be used to find assemblies and/or associated metadata for genomes that match a search term.**  
-This function mimics default behavior of the "Search for a genome" bar on the ATCC Genome Portal. The search term can either be a full- or sub-string of an organism name, or an exact match of the ATCC catalog number as a character string.   
+This function mimics default behavior of the "Search for a genome" bar on the ATCC® Genome Portal. The search term can either be a full- or sub-string of an organism name, or an exact match of the ATCC® catalog number as a character string.   
 **The default output of this function is a list of ids formatted like ['ATCC CatalogNo:GenomeID', ... ]**.
 
 **To test out what search terms might help, first try using the "Search for a genome" bar on the [ATCC Genome Portal](https://genomes.atcc.org/).**
@@ -247,7 +260,7 @@ This function mimics default behavior of the "Search for a genome" bar on the AT
 
 ```
 search_text() is intended for exact string matching or substring matching on taxonomic names. This will also capture partial matching of ATCC product numbers. 
-This mimics the function of using the search bar default on the ATCC Genome Portal, but DOESNOT FULLY SUPPORT FUZZY MATCHING
+This mimics the function of using the search bar default on the ATCC® Genome Portal, but DOESNOT FULLY SUPPORT FUZZY MATCHING
 
 --------- USAGE ---------
 Required arguments:
@@ -382,19 +395,19 @@ Output:
 
 
 ## download_assembly() <a name="download_assembly"></a>
-**The download_assembly() function is the only function that can query and download the fasta assembly of an item on the ATCC Genome Portal.**  
+**The download_assembly() function is the only function that can query and download the fasta assembly of an item on the ATCC® Genome Portal.**  
 This function takes an genome id as input to either download an assembly directly to a filepath, or store an assembly as a dictionary.
 
 <details markdown="1">
 <summary>Usage</summary>
 
 ```
-  download_assembly() is function to download the fasta assemblies on the ATCC Genome Portal. The genomes files can be downloaded, or output directly to stdout.
+  download_assembly() is function to download the fasta assemblies on the ATCC® Genome Portal. The genomes files can be downloaded, or output directly to stdout.
   
   --------- USAGE ---------
   Required arguments:
     id = <str>
-          An ATCC Genome ID (https://genomes.atcc.org/genome<genomeid>)          
+          An ATCC® Genome ID (https://genomes.atcc.org/genome<genomeid>)          
   
   Optional arguments:
     output = <str>
@@ -434,20 +447,20 @@ TTTTTCCTTCTGCTCATGTCTATTTTATGGAAAATAAAGGTCGTGATATAAAGCCTTTTTTGACTTTGCTTGAATCTGGG
 </details></details>
 
 ## download_annotations() <a name="download_annotations"></a>
-**`download_annotations()` is the only function that can query and download the annotations of an item on the ATCC Genome Portal via GenBank format.**  
+**`download_annotations()` is the only function that can query and download the annotations of an item on the ATCC® Genome Portal via GenBank format.**  
 Similar to `download_assembly()`, an assembly id is required for the `download_annotations()`, which can be used to obtain the annotations to stdOUT or save as a file directly. The annotations are in .gbk filetype.
 
 <details markdown="1">
 <summary>Usage</summary>
 
 ```
-  download_annotations() is a function to download the fasta assemblies on the ATCC Genome Portal. 
+  download_annotations() is a function to download the fasta assemblies on the ATCC® Genome Portal. 
   The annotation files can be downloaded, or output directly to stdout.
   
   -------- USAGE ---------
   Required arguments:
     id = <str>
-          An ATCC Genome ID (https://genomes.atcc.org/genomes/<genomeid>)          
+          An ATCC® Genome ID (https://genomes.atcc.org/genomes/<genomeid>)          
   
   Optional arguments:
     output = <str> 
@@ -567,7 +580,7 @@ The metadata can be output as a dictionary, or as an informative table with the 
 --------- USAGE ---------
 Required arguments:
   id = <str>
-        An ATCC Genome ID (https://genomes.atcc.org/genomes/<genomeid>) \n     
+        An ATCC® Genome ID (https://genomes.atcc.org/genomes/<genomeid>) \n     
       
 Optional arguments:
   output = <str>
@@ -648,7 +661,7 @@ This can be ran without prior knowledge of any associated metadata.
 <summary>Usage</summary>
 
 ```
-  download_all_genomes() is a function intended to download the JSON metadata for ALL ATCC genomes currently available on the ATCC Genome Portal.
+  download_all_genomes() is a function intended to download the JSON metadata for ALL ATCC® genomes currently available on the ATCC® Genome Portal.
   This function will store the results as the variable "global_genome_metadata", and will also report to stdOUT.
 
   --------- USAGE ---------
@@ -706,9 +719,9 @@ To use this function, you must have downloaded all genomic metadata using `downl
 <summary>Usage</summary>
 
 ```
-deep_search() is intended for deep searching of ATCC JSON metadata behind each genome.
+deep_search() is intended for deep searching of ATCC® JSON metadata behind each genome.
 THIS FUNCTION SUPPORTS EXACT KEY|VALUE|STRING MATCHING, WITH "text" METHOD CAPTURE SUBSTRINGS.
-There is currently no similar function on the ATCC Genome Portal.
+There is currently no similar function on the ATCC® Genome Portal.
 This function will search through the JSON metadata of all available genomes for matching strings orv alues.
 
 --------- USAGE ---------
@@ -821,7 +834,7 @@ By providing a list of genomes, `tabulate()` will then convert the inputed liste
 [4890 rows x 44 columns]
 ```
 </details></details> <br />  
-
+ <br />  
 
 # Cookbook <a name="cookbook"></a>
 
@@ -933,8 +946,8 @@ Now, lets download these genbanks and annotations for each of the top 5 most ABX
 
 ```
 for i, row in bsl_hits_sorted.iterrows():
-  download_assembly(id=row['genome_id'], output='fasta',download_dir='/home/jpetrone_atcc.org')
-  download_annotations(id=row['genome_id'], output='gbk',download_dir='/home/jpetrone_atcc.org')
+  download_assembly(id=row['genome_id'], output='fasta',download_dir='/test/download_folder')
+  download_annotations(id=row['genome_id'], output='gbk',download_dir='/test/download_folder')
 ```
 Output:
 
@@ -1080,3 +1093,32 @@ Some example metadata:
 taxon: {'name': 'Yersinia enterocolitica', 'parents': [{'name': 'Yersinia', 'rank': 'genus', 'tax_id': 629}, {'name': 'Yersiniaceae', 'rank': 'family', 'tax_id': 1903411}, {'name': 'Enterobacterales', 'rank': 'order', 'tax_id': 91347}, {'name': 'Gammaproteobacteria', 'rank': 'class', 'tax_id': 1236}, {'name': 'Proteobacteria', 'rank': 'phylum', 'tax_id': 1224}, {'name': 'Bacteria', 'rank': 'superkingdom', 'tax_id': 2}, {'name': 'cellular organisms', 'rank': 'no rank', 'tax_id': 131567}], 'rank': 'species', 'tax_id': 630}
 ```
 </details>
+
+ <br />  
+
+# Citations <a name="citation"></a>
+
+To properly cite the ATCC® Genome Portal, please use the reference below:
+```
+Benton B, King S, Greenfield SR, et al. The ATCC® Genome Portal: Microbial Genome Reference Standards with Data Provenance. Thrash JC, ed. Microbiol Resour Announc. 2021;10(47):e00818-21. https://journals.asm.org/doi/10.1128/msphere.00077-22
+```
+
+Additional recent peer reviewed research from ATCC®’s Sequencing & Bioinformatics Center includes:
+
+```
+Yarmosh DA, Lopera JG, Puthuveetil NP, et al. Comparative Analysis and Data Provenance for 1,113 Bacterial Genome Assemblies. Suen G, ed. mSphere. Published online May 2, 2022:e00077-22. https://journals.asm.org/doi/10.1128/MRA.00818-21
+
+Jacobs SE, Jacobs JL, Dennis EK, et al. Candida auris Pan-Drug-Resistant to Four Classes of Antifungal Agents. Antimicrob Agents Chemother. Published online June 30, 2022:e00053-22. doi:10.1128/aac.00053-22
+
+Harmon CL, Castlebury L, Boundy-Mills K, et al. Standards of Diagnostic Validation: Recommendations for reference collections. PhytoFrontiersTM. Published online August 25, 2022:PHYTOFR-05-22-0050-FI. doi:10.1094/PHYTOFR-05-22-0050-FI
+```
+
+# Contact Us <a name="contact"></a>
+
+<a href="https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal"><img src="https://github.com/ATCC-Bioinformatics/genome_portal_api/blob/dev/images/SBC_Team_Photo_12Jul2024.jpg" alt="Clickable-Team_members_redirect" /></a>
+
+If you found a bug with this REST-API, would like new features, or have questions related to this GitHub, please fill out a [Issue Template](https://github.com/ATCC-Bioinformatics/genome_portal_api/tree/dev/.github/ISSUE_TEMPLATE) form if applicable, and post the the [issues](https://github.com/ATCC-Bioinformatics/genome_portal_api/issues) section of this repository.
+
+For questions, concerns, or anything ATCC Genome Portal related, please e-mail us at: `nextgen@atcc.org`  
+
+For anything else, please reach out to the main ATCC Contact portal: [Contact ATCC](https://www.atcc.org/support/contact-us)
