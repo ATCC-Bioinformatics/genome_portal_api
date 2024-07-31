@@ -36,7 +36,10 @@ class emptyResultsError(Exception):
 
 def get_global_metadata():
   try:
-    return global_genome_metadata
+    if global_genome_metadata:
+      return global_genome_metadata
+    else:
+      load_all_metadata()
   except NameError:
     load_all_metadata()
 
@@ -91,16 +94,17 @@ def load_all_metadata():
   global global_genome_metadata
   ## Check to see if set as enviornment variable
   try:
-    if not global_genome_metadata:
-      global_genome_metadata=download_all_genomes()
-      logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
-    else:
-      logger.info(f"All genome have been already been stored under the variable 'global_genome_metadata' ")
+    if global_genome_metadata:
+      logger.info(f"All genomes have been stored under the variable 'global_genome_metadata' ")
       logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
+      return
+    else:
+      global_genome_metadata=download_all_genomes()
   except NameError:
     global_genome_metadata=download_all_genomes()
-    logger.info(f"All genome have been stored under the variable 'global_genome_metadata' ")
-
+    if global_genome_metadata:
+      logger.info(f"All genomes have been stored under the variable 'global_genome_metadata' ")
+    return
 
 
 def flatten_dict(d):
@@ -339,13 +343,15 @@ def deep_search(**kwargs):
       \t deep_search(text="PGAP") will return a list of genomeIDs that had "PGAP" somewhere in the JSON
       \t deep_search(text="Lake", output="id") return resulting assembly IDs that contain "Lake" in the metadata
       \t deep_search(api_key="<apikey>",text="Lake",output="table") Same as above, but with a manually entered API Key and output as an informational table.
-      \t deep_search(api_key="<apikey>",text="Lake",output="table",fuzzy='75') Same as above, but now fuzzy match to '75'
+      \t deep_search(api_key="<apikey>",text="Lake",output="table",fuzz_on='75') Same as above, but now fuzzy match to '75'
     """)
     return
 
   message="Your search returned zero results. This function uses exact string matching on the JSON metadata for each genome. \
   Check your spelling and try again. If you continue to have issues, try downloading an assembly metadata file to ensure the search term is present."
   
+  empty_genomes="Your global_genome_metadata variable is empty! If this is an error, try resetting your API key and retry!"
+
   kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
 
   if "api_key" in kwargs:
@@ -367,11 +373,11 @@ def deep_search(**kwargs):
   if output not in ['id','json','table'] or mode not in  ['text','str']:
     logger.warning(kwarg_message)
     return
-  try:
-    genome_list = global_genome_metadata
-  except NameError:
-    load_all_metadata()
-    genome_list = global_genome_metadata
+
+  genome_list = get_global_metadata()
+  if not genome_list:
+    logger.warning(empty_genomes)
+    return
   try:  
     items_to_return = []
     for item in genome_list:
@@ -431,10 +437,10 @@ def download_assembly(**kwargs):
       apikey = get_global_apikey()
   output = kwargs['output'].lower() if 'output' in kwargs else 'dict'
   file_path = kwargs["download_dir"] if 'download_dir' in kwargs else False
-  if output=='download':
+  if output=='fasta':
     if file_path == False:
       logger.critical("'download_dir' MUST be provided when selecting 'output='fasta'")
-
+      return
   cmd = f"curl --insecure --header \'Content-Type: Application/json\' --header \"X-API-Key: {apikey}\""
   cmd += f" https://genomes.atcc.org/api/genomes/{id}/download_assembly"
   cmd += " 2> /dev/null"
@@ -444,6 +450,9 @@ def download_assembly(**kwargs):
     data = json.loads(result)
     grab.close()
     assembly_stage=None
+    if 'url' not in data.keys():
+      logger.warning(f"There does not appear to be a URL for Genome: {id}. Please verify and try again!")
+      return
     if "API access" in result:
       logger.critical(membership_message)
       return
@@ -487,6 +496,7 @@ def download_assembly(**kwargs):
                     logger.info("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
                     incoming_id = assembly[assembly.find('assembly_id='):][13:29]
                     output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
+                  continue
               with open(output_file_path, 'w') as f: 
                 for key, value in assembly_obj.items():
                   print(key, file=f)
@@ -557,6 +567,9 @@ def download_annotations(**kwargs):
     grab.close()
     annotations_stage=None
     annotations='The specified key does not exist'
+    if 'url' not in data.keys():
+      logger.warning(f"There does not appear to be a URL for Genome: {id}. Please verify and try again!")
+      return
     if "API access" in result:
       logger.critical(membership_message)
       return
@@ -685,7 +698,6 @@ def iter_paginated_endpoint(url: str, api_key) -> Generator:
             auth=(api_key, ""),
             params={"page": page},
         )
-        membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
         
         if "API access" in resp.text:
           logger.critical(membership_message)
@@ -758,6 +770,8 @@ def download_all_genomes(**kwargs):
   message2="Your search returned an error. Double check that the page you are searching for exists, and try again."
 
   genomes=list(get_genomes(apikey))
+  if not genomes:
+    return
   print(f"Fetched {len(genomes):,} genomes")
   for visibility, count in Counter(
     [g["primary_assembly"]["visibility"] for g in genomes]
@@ -772,9 +786,9 @@ def download_all_genomes(**kwargs):
     global_genome_metadata = data
     if data == [] or genomes == []:
       raise emptyResultsError(message)
+      return data
     else:
       return data
-
 
 def format_qc(dataframe):
   """Format table of JSON into human readable and digestable"""

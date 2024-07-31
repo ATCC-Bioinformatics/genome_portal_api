@@ -1,4 +1,4 @@
-# ATCC Genome Portal REST API 
+# ATCC® Genome Portal REST API 
 <a href="https://genomes.atcc.org/"><img src="https://github.com/ATCC-Bioinformatics/genome_portal_api/blob/dev/images/Genome Portal_728x90.jpg" alt="Clickable-Awesome-Portal-portal" /></a>
 
 # Table of Contents
@@ -10,7 +10,7 @@
 * [Tips and FAQ](#FAQ)
 * [Functions](#functions)  
    * [search_product](#search_product)   
-   _find a genome by ATCC Product ID_
+   _find a genome by ATCC® Product ID_
       - [Return results as JSON](#search_product_json)
       - [Return results as a table](#search_product_table)
    * [search_text](#search_text)  
@@ -50,7 +50,7 @@
 # Introduction <a name="introduction"></a>
 This repository serves as a collection of python scripts that can be used to access the ATCC® Genome Portal through the One Codex REST-API.   
 
-Accessing the ATCC Genome Portal through the API provides **extensively** more data than can be seen on the ATCC® Genome Portal GUI. [While One Codex documentation](https://docs.onecodex.com/en/articles/5812163-atcc-genome-portal-api-guide) exists to detail the exact endpoints, this repo serves as prebuilt and formatted wrappers to navigate the REST API. All scripts were created and tested using Python version 3.9. 
+Accessing the ATCC® Genome Portal through the API provides **extensively** more data than can be seen on the ATCC® Genome Portal GUI. [While One Codex documentation](https://docs.onecodex.com/en/articles/5812163-atcc-genome-portal-api-guide) exists to detail the exact endpoints, this repo serves as prebuilt and formatted wrappers to navigate the REST API. All scripts were created and tested using Python version 3.9. 
 <!-- Scripts have been tested in Google Colab using Python 3.9. See the demo python notebook for detailed walkthroughs: \
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/11hBTFeM4SzHKxPvfiIlwGQHW0YZelfgY?usp=sharing) -->
 
@@ -59,22 +59,23 @@ You will need:
 1. An ATCC® Genome Portal Suporting Membership
     * As of May 1, 2024, a supporting membership is required to access the REST API
     * To purchase a suporting membership, learn more [here](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal)
-2. a One Codex account at https://genomes.atcc.org/ to obtain an API Key. This is required for all scripts.
-    * Log in or create an account on https://genomes.atcc.org       
+2. An API Key. This is required for all scripts.
+    * A One Codex account at https://app.onecodex.com/ and an account on https://genomes.atcc.org is required to obtain an API Key.
+    * Log in or create an account on https://app.onecodex.com/ and https://genomes.atcc.org      
     * Proceed to https://genomes.atcc.org/profile 
     * Click on “Copy API Key”
 
 3.   Python 3.9 or higher.
         * Scripts were tested on python 3.9, but use of earlier requirements (v3.7+) should not prohibit usage of the API and functionality.
-# Pip install <a name="installation"></a>
-### Conda environment
+# Installation <a name="installation"></a>
+### Pip install via conda environment
 ```
 conda create -n "genome_portal_api"
 conda activate genome_portal_api
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/downloaded/genome_portal_api_folder
 ```
-### Python virtual environmnet
+### Pip install via Python virtual environmnet
 ```
 python -m venv env
 source env/bin/activate
@@ -82,43 +83,68 @@ git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/downloaded/genome_portal_api_folder
 ```
 # Setup <a name="Setup"></a>
-Activate your evironment, load in all the functions, and get started!
+Activate your environment, load in all the functions, and get started!
 ```
 conda activate genome_portal_api
 python 
 
-# Below is ran from within a python session
+# The following code is run from within a python session
 from genome_portal_api import * #Loads up all functions of the API
 ```
 ## Setting a global api key <a name="setting_api_key"></a>
 **If you have the `global_api_key` variable set in your environment, you do not need to provide an `api_key` argument to any function.  To verify your API key is set, call the function `get_global_apikey()`**.  
 
 If this is your first time using the API, we advise to set and export your API key under the global variable `ATCC_GENOME_PORTAL_API_KEY` in your .bashrc file.
-Otherwise, we recommend setting your api_key globally on script startup. This can be done a few ways below:
+Otherwise, we recommend setting your api_key globally on script startup. This can be done in the following ways:
+
+**Best Option:**  
+The API key is added to your `.bashrc` under variable `ATCC_GENOME_PORTAL_API_KEY`, and will be automatically detected.  
+(ex. EXPORT ATCC_GENOME_PORTAL_API_KEY="yourapikeygoeshere")
 ```
-Best Option:
-(.bashrc file) EXPORT ATCC_GENOME_PORTAL_API_KEY="yourapikeygoeshere"
 >>> set_global_api()
 2024-07-29 14:20:08,021 - INFO - API key has been found: "yourapikeygoeshere" 
+```
+**Option 2 - "Dedicated manual setting / override"**  
+The API key is provided as an argument to set_global_api(), or is provided as USER input.  
+**If you already have `ATCC_GENOME_PORTAL_API_KEY` exported, you will need to provide an API key to overwrite.**  
+Will overwrite ANY set API key.
+```
+## Manual set OR overwrite any set API key
 
-Option 1 - "Manual override or set"
 >>> set_global_api(api_key="testing")
 2024-07-29 14:24:13,860 - INFO - API key is now set: 'testing'. Please export this api_key under the variable 'ATCC_GENOME_PORTAL_API_KEY'!
 
-Option 2 - "Set on the fly; Quickstart"
->>> search_product(product_id='TSD-364') #Most functions will envoke the call
-2024-07-29 19:27:12,996 - INFO - API key has been found: 'testing'
-{'ATCC TSD-364': '4a3251f108a044c3'}
+## No API key set, nor exported in the OS environment. Requires USER response
 
-Option 3 - "Not in os.eviron"
 >>> set_global_api()
 Please enter the API key: 'testing'
 2024-07-29 14:24:13,860 - INFO - API key is now set: 'testing. Please export this api_key under the variable 'ATCC_GENOME_PORTAL_API_KEY'!
+```
 
-Option 4 - "Test your group membership API keys"
+**Option 3 - "Set as you go; Quickstart"**  
+In this case, you just begin using the API functions at full speed and don't care to set it by a dedicated call. If no API key is set, the functions will automatically run `set_global_api()`.  
+If you have an API key being exported, it will be found, otherwise it will require user input to set! Here is an example of both:
+```
+## No API key found nor exported from .bashrc, requires USER response.
+
+>>> search_product(product_id='TSD-364') 
+Please enter the API key: 'testing'
+2024-07-29 14:24:13,860 - INFO - API key is now set: 'testing. Please export this api_key under the variable 'ATCC_GENOME_PORTAL_API_KEY'!
+['ATCC TSD-364': '4a3251f108a044c3']
+
+## Exported OS environment API key found, and is set on first run
+
+>>> search_product(product_id='TSD-364') 
+2024-07-31 13:34:56,064 - INFO - API key has been found: testing
+['ATCC TSD-364': '4a3251f108a044c3']
+```
+
+**Option 4 - "Provide a different API key during to a bigger function"**  
+For this option, maybe you wanted to use a different API key during a function call. An example reason why may be to test your groups' API keys, or to troublehsoot if your API key is not activated.  
+In this case, we are purposely providing a fault API key to demonstrate the return messaging. PROVIDING 
+```
 >>> search_product(product_id='TSD-364',api_key='badapikey')
-2024-07-29 19:40:57,305 - CRITICAL - API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe.
-
+2024-07-29 19:40:57,305 - CRITICAL - API access to the ATCC® Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe.
 ```
 
 #  Tips & FAQ <a name="FAQ"></a>  
@@ -132,18 +158,18 @@ set_global_api(api_key='yourapikey')
 ```
 
 ### -- Which output is best???
-Simply put, whichever is best for you! **For most functions, there is a choice of output.**  The output can be broken down here:
+Simply put, whichever is best for you! **For most functions, there is a choice of final output type.**  The output types are broken down here:
 
 * #### table:
 
-Personally this is our favorite output mode. In this mode, a pandas dataframe is returned as the output of the function. Each row is a unique different genome/assembly, and the JSON metadata is meaningfully auto-formatted and named in a human-readable way! We are continually improving the captured and reported metadata, so keep checking back for more updates!  
+Personally this is our favorite output mode. In this mode, a pandas dataframe is returned as the output of the function. Each row is a unique different genome/assembly, and the JSON metadata is meaningfully auto-formatted and named in a human-readable way! We are continually improving the captured and reported metadata, so keep checking back for more updates! We advise using the table output type if you need a human-readable format.
 
 * #### json:
 
-This is like legendary mode...There is much more data behind each genome, but reporting on it for most use-cases is challenging for brevity. We are working on a wiki to explain each metadata field in the JSON, but feel free to raise an issue if you need help!
+This is like legendary mode...There is much more data behind each genome, but reporting on it for most use-cases is challenging for brevity. We are working on a wiki to explain each metadata field in the JSON, but feel free to raise an issue if you need help! We advise using the json output type if you need access to ALL the data.
 * #### id:  
 
-Bread and butter! One of the most-used cases in the past API behavior, this output is strictly a list of IDs, so that each list entry is the ATCC® catalog number followed by the genomeID. ex( ['ATCC 10536:996d977f03724ce6', ...])
+Bread and butter! One of the most-used cases in the past API behavior, this output is strictly a list of IDs, so that each list entry is the ATCC® catalog number followed by the genomeID. ex( ['ATCC 10536:996d977f03724ce6', ...]). We advise using the id output type if you only need the ATCC® catalog numbers and their respective genome IDs.
 
 </details>  <br />
 
@@ -163,7 +189,7 @@ This mimics the function of using the search bar on the ATCC® Genome Portal set
 --------- USAGE ---------
 Required arguments:
     product_id = <str>
-          An ATCC product_id (ex. "BAA-2889")  
+          An ATCC® product_id (ex. "BAA-2889")  
 
 Optional arguments:
   output = <str> 
@@ -172,16 +198,16 @@ Optional arguments:
         Your Genome Portal APIKey [default looks for global_api_key]       
 
 EXAMPLES:
-  > search_product(product_id='35638') Return resulting Genome ID for ATCC® 35638
+  > search_product(product_id='35638') Returns resulting Genome ID for ATCC® 35638
   > search_product(product_id='35638', api_key='apikey') Same as above, but this time with a new apikey
   > search_product(product_id='35638', output='json') Return resulting JSON metadata for ATCC® 35638
-  > search_product(product_id='35638', output='table') Return resulting JSON metadata for ATCC® 35638 in a informative table
+  > search_product(product_id='35638', output='table') Return resulting JSON metadata for ATCC® 35638 in a table format
 ```
 
 <details>
 <summary>Advanced</summary>
 
-### Outputing product metadata as JSON format <a name="search_product_json"></a>
+### Outputting product metadata as JSON format <a name="search_product_json"></a>
 Example:
 ```
 product_metadata = search_product(product_id="BAA-335",output="json")
@@ -227,9 +253,9 @@ product_metadata
   'product_url': 'https://www.atcc.org/Products/All/BAA-335',
   'taxon_name': 'Neisseria meningitidis'}}]
 
-... "Intentionally shortened for cleanliness"
+... "Intentionally shortened for brevity"
 ```
-### Outputing product metadata as table <a name="search_product_table"></a>
+### Outputting product metadata as table <a name="search_product_table"></a>
 Example:
 
 ```
@@ -252,39 +278,39 @@ search_product_table = search_product(product_id="BAA-335",output="table")
 This function mimics default behavior of the "Search for a genome" bar on the ATCC® Genome Portal. The search term can either be a full- or sub-string of an organism name, or an exact match of the ATCC® catalog number as a character string.   
 **The default output of this function is a list of ids formatted like ['ATCC CatalogNo:GenomeID', ... ]**.
 
-**To test out what search terms might help, first try using the "Search for a genome" bar on the [ATCC Genome Portal](https://genomes.atcc.org/).**
+**To test out what search terms might help, first try using the "Search for a genome" bar on the [ATCC® Genome Portal](https://genomes.atcc.org/).**
 
 <details markdown="1">
 <summary>Usage</summary>
 
 
 ```
-search_text() is intended for exact string matching or substring matching on taxonomic names. This will also capture partial matching of ATCC product numbers. 
+search_text() is intended for exact string matching or substring matching on taxonomic names. This will also capture partial matching of ATCC® product numbers. 
 This mimics the function of using the search bar default on the ATCC® Genome Portal, but DOESNOT FULLY SUPPORT FUZZY MATCHING
 
 --------- USAGE ---------
 Required arguments:
   text = <str>
-        A free text field to search by (ex. "Salmonella enterica")\n            
+        A free text field to search by (ex. "Salmonella enterica")            
 
 Optional arguments:
   output = <str>
         The API response format "output" [(id) | json | table]
   api_key = <str>
-        Your Genome Portal APIKey [Globally set "global_api_key" or entered"api_key"]      
+        Your Genome Portal APIKey [Globally set "global_api_key" or entered "api_key"]      
 
 EXAMPLES:
   > search_text(text='coli') return resulting Genome IDs that match that string
-  > search_text(text='coli',output="table") return resulting metadata in TABULAR output for genomes that contain that text string
-  > metadata = search_text(api_key='YOUR_API_KEY',text='coli',output="table") Same as above, but with a manually entered API Key to overwrite set
-  > search_text(text='coli', output="json") return resulting metadata in table-form for genomes that contain that text string
+  > search_text(text='coli',output="table") return resulting metadata in TABULAR output for genomes that contain the input text string
+  > metadata = search_text(api_key='YOUR_API_KEY',text='coli',output="table") Same as above, but with a new API Key
+  > search_text(text='coli', output="json") return resulting metadata in JSON format for genomes that contain the input text string
 ```
 
 <details>
 <summary>Advanced</summary>
 For the example below, any of the following search terms could have been used to produce a list which contained Escherichia coli: "Escherichia", "Esch", "coli", "richia", or "35401".
 
-### Outputing search results metadat as JSON format <a name="search_text_json"></a>
+### Outputting search results metadat as JSON format <a name="search_text_json"></a>
 Example:
 
 ```
@@ -307,7 +333,7 @@ search_text_results=search_text(text="coli",output="table")
 300           51798                             Campylobacter coli     195  ...  Terminal ileum of pig with proliferative enter...               2  None
 ```
 
-### Outputing search results metadata as a table <a name="search_text_table"></a>
+### Outputting search results metadata as a table <a name="search_text_table"></a>
 Example:
 ```
 search_text_results=search_text(text="coli",output="json")
@@ -370,14 +396,13 @@ search_text_results=search_text(text="coli",output="json")
   "taxon_name": "Escherichia coli"
 }}
 
-... "Shortened for cleanliness"
+... "Intentionally shortened for brevity"
 
 ```
 Specific values from each dictionary can be accessed as follows:
 ```
 [(e['taxon_name'],e['attributes']['atcc_metadata']['catalog_number']) for e in search_text_results]
 ```
-or
 
 **DEFAULT MODE ID output**:
 ```
@@ -413,13 +438,13 @@ This function takes an genome id as input to either download an assembly directl
     output = <str>
           The API response format "output" [ (dict) | fasta ]
     download_dir = [Path <str>]
-          A directory to download the fasta file toThe fasta file will be named automatically.
+          A directory to download the fasta file to. The fasta file will be named automatically.
     api_key = <str> 
           Your Genome Portal APIKey [(global_api_key) | overwrite if provided ] 
   
   EXAMPLES:
     > download_assembly(id='assemblyid', output='fasta', download_dir="/directory/for/download/") downloads an assembly file to provided path
-    > download_assembly(id='assemblyid', output='dict') return a dictionary othe assembly. Key=Header : Value=Seq.
+    > download_assembly(id='assemblyid', output='dict') return a dictionary of the assembly. [Key=Header : Value=Seq].
 ```
 
 <details>
@@ -438,7 +463,7 @@ for contig in assembly:
   print(contig)
   print(assembly[contig][0:200])
 ```
-`assembly` is a dictionary where each key is the contig header and each value is the contig sequence. The output from above (200 bases extended from each contig):
+`assembly` is a dictionary where each key is the contig header and each value is the contig sequence. The output from above (200 bases extended from each contig) is shown below:
 ```
 >128666ac42774942_1 assembly_id="128666ac42774942" genome_id="8df308b788704bed" atcc_catalog_number="ATCC BAA-2481" species="Liberibacter crescens" contig_number="1" topology="circular"
 TTTTTCCTTCTGCTCATGTCTATTTTATGGAAAATAAAGGTCGTGATATAAAGCCTTTTTTGACTTTGCTTGAATCTGGGAAACTCGATCAGTATGATTATATTTGCAAGATTCATGGCAAGGAGTCGAGACATCAAAAGCGTTCTCCGATTGAAGGAACCTTATGGAGACGTTGGTTATTTTATGATCTTCTTGGAGCA
@@ -468,11 +493,11 @@ Similar to `download_assembly()`, an assembly id is required for the `download_a
     download_dir = [Path <str>] 
           A directory to download the GenBank files to. The file will be named automatically.
     api_key = <str> 
-          Your Genome Portal APIKey [(global_api_key) | overwrite if provided ] \      
+          Your Genome Portal APIKey [(global_api_key) | overwrite if provided ]      
   
   EXAMPLES:
     > download_annotations(id='genomeid', output='gbk', download_dir='/directory/for/download/') downloads a GenBank file to provided path
-    > download_annotations(id='genomeid', output='dict') return the raw genbank file
+    > download_annotations(id='genomeid', output='dict') returns the raw genbank file
 ```
 
 <details>
@@ -496,7 +521,7 @@ annotations=download_annotations(id='8df308b788704bed',output='dict')
 for line in annotations.split("\n"):
   print(line)
 ```
-The output from the above code block prints each link of the .gbk file.
+The output from the above code block prints each line of the .gbk file.
 ```
 LOCUS       assembly_128666ac42774942_1 1513871 bp    DNA     circular BCT 30-APR-2024
 DEFINITION  Liberibacter crescens ATCC® BAA-2481™, contig 1.
@@ -568,19 +593,19 @@ FEATURES             Location/Qualifiers
 
 ## download_metadata() <a name="download_metadata"></a>
 **`download_metadata()` is a function to download the full metadata of a genome on the portal.**  
-This function be used to obtain the detailed metadata including qc statistics, contig length(s), etc. for a specific genome id.
+This function is used to obtain the detailed metadata including qc statistics, contig length(s), etc. for a specific genome id.
 
 <details markdown="1">
 <summary>Usage</summary>
 
 ```
 download_metadata() is a function intended to download the JSON metadata behind each assembly on the portal.
-The metadata can be output as a dictionary, or as an informative table with the correct fields already formatted.\n
+The metadata can be output as a dictionary, or as an informative table with the correct fields already formatted.
       
 --------- USAGE ---------
 Required arguments:
   id = <str>
-        An ATCC® Genome ID (https://genomes.atcc.org/genomes/<genomeid>) \n     
+        An ATCC® Genome ID (https://genomes.atcc.org/genomes/<genomeid>)     
       
 Optional arguments:
   output = <str>
@@ -680,7 +705,7 @@ This can be ran without prior knowledge of any associated metadata.
 <summary>Advanced</summary>
 
 ### Download all genome entries as list example: <a name="download_all_genomes_to_list"></a>
-Running the below code will generate a list of every genome's metadata. Because the output was assigned to a variable, it will store as the assigned variable here `genomes` as well as `global_genome_metadata` by default.
+Running the below code will generate a list of every genome's metadata. Because the output was assigned to a variable, it will store as the assigned variable `genomes` as well as `global_genome_metadata` by default.
 ```
 genomes=download_all_genomes()
 ```
@@ -711,7 +736,7 @@ Alternatively, you can create a secondary list of these genomes, now indexed by 
 ## deep_search() <a name="deep_search"></a>
 `deep_search()` allows the user to search for a term in a list of genome JSON metadata. The function searches through every key and value in the metadata nested dictionary. By default, it runs in 'text' mode, where the term is searched within the entire JSON as a string. 'json' mode enables full text matching as either a key or dict value. 
 
-This function also supports fuzzy matching with the search term. By adding `fuzzy=value` to the command, the 'value' becomes the fuzzy token ratio value.
+This function also supports fuzzy matching with the search term. By adding `fuzz_on=value` to the command, the 'value' becomes the fuzzy ratio value.
 
 To use this function, you must have downloaded all genomic metadata using `download_all_genomes()` or must assign your personal list to the variable `global_genome_metadata`.
 
@@ -722,7 +747,7 @@ To use this function, you must have downloaded all genomic metadata using `downl
 deep_search() is intended for deep searching of ATCC® JSON metadata behind each genome.
 THIS FUNCTION SUPPORTS EXACT KEY|VALUE|STRING MATCHING, WITH "text" METHOD CAPTURE SUBSTRINGS.
 There is currently no similar function on the ATCC® Genome Portal.
-This function will search through the JSON metadata of all available genomes for matching strings orv alues.
+This function will search through the JSON metadata of all available genomes for matching strings or values.
 
 --------- USAGE ---------
 Required arguments:
@@ -736,18 +761,18 @@ Optional arguments:
   output = <str>
         The API response format "output" [(id) | json | table]
   mode = <str>
-        Choice to search based on a dictionary structure or just raw text [(text)json]
+        Choice to search based on a dictionary structure or just raw text [(text) | json]
   api_key = <str>
-        Your Genome Portal APIKey [Globally set "global_api_key"orentered"api_key"]
+        Your Genome Portal APIKey [Globally set "global_api_key"or entered "api_key"]
   STORE global_genome_metadata
-        A list of genomes can be set as "global_genome_metadata"variable. Not needed as an argument (Globally setvariable"global_genome_metadata")
+        A list of genomes can be set as "global_genome_metadata" variable. Not needed as an argument (Globally set variable "global_genome_metadata")
 
 EXAMPLES:
   > deep_search(text="PGAP") will return a list of genomeIDs that had "PGAP" somewhere in the JSON
-  > deep_search(text="Lake", output="id") return resulting assembly IDs that contain "Lake"inthemetadata
-  > deep_search(text="Lake", output="id", fuzz_on='75') Same as above, but with a fuzzy score to lake
-  > deep_search(mode='json',text="Lake", output="table") Same as above, but with a manually entered API Key and output as an informational table.
-  > deep_search(api_key="<apikey>",text="Lake",output="table",fuzzy='75') Same as above, but now fuzzy match to '75'
+  > deep_search(text="Lake", output="id") return resulting assembly IDs that contain "Lake"in the metadata
+  > deep_search(text="Lake", output="id", fuzz_on='75') Same as the previous command, but will also output a fuzzy score to lake
+  > deep_search(mode='json',text="Lake", output="table") Same as the previous command, but with an included manually entered API Key and output as an informational table.
+  > deep_search(api_key="<apikey>",text="Lake",output="table",fuzz_on='75') Same as the previous command, but now fuzzy match to '75'
 ```
 <details>
 <summary>Advanced</summary>
@@ -758,7 +783,7 @@ For example, searching for the term "yursinia" (a misspelling of yersinia) works
 match_list=deep_search(text="yursinia",fuzz_on='50',output='json')
 [e['taxon_name'] for e in match_list]
 ```
-`match_list` is a list of dictionaries. The taxon_name for each element output from the above code:
+`match_list` is a list of dictionaries. The taxon_name for each element output from the above code is listed below:
 ```
 ['Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia pestis', 'Yersinia ruckeri', 'Yersinia pestis', 'Human rhinovirus 35', 'Phytobacter ursingii', 'Yersinia rohdei', 'Yersinia aldovae', 'Yersinia rohdei', 'Yersinia rohdei', 'Yersinia rohdei', 'Yersinia aldovae', 'Yersinia ruckeri', 'Bovine respiratory syncytial virus', 'Yersinia aldovae', 'Yersinia aldovae', 'Yersinia rohdei', 'Phytobacter ursingii', 'Yersinia sp.', ... ]
 ```
@@ -768,7 +793,7 @@ Example:
 ```
 >>> search_results = deep_search(text="'bsl': 2",output='table')
 ```
-Which returns a tabular output of all genomes that have this metadata!:
+Which returns a tabular output of all genomes that have a BSL level of 2 in the metadata!:
 
 ```
 >>> search_results
@@ -846,7 +871,7 @@ First, we search for all Escherichia coli using `search_text()`. Then we iterate
 ```
 search_text_results=search_text(text="Escherichia coli",output='json')
 e_coli_data = {}
-# Download assembly, annotations, and metadata for first 5 
+# Download assembly, annotations, and metadata for first 3 
 for e in search_text_results[:3]:
   id = e['id']
   e_coli_data[id] = {}
@@ -858,6 +883,7 @@ for e in search_text_results[:3]:
 
 
  ```
+ # Print the data from each of the assemblies
  for id in e_coli_data.keys():
   print("First 150 nts of each contig")
   for contig in e_coli_data[id]["assembly"].keys():
@@ -916,9 +942,9 @@ Some example metadata:
 contig_lengths: [5152467.0, 94797.0, 67898.0, 66609.0, 5800.0, 5538.0]
 checkm_results: {'completeness': 99.96693121693121, 'contamination': 0.4836309523809524}
 ```
-## Download all the data for products with BSL 2 designations, with the most antibiotic resistance <a name="ex_bsl"></a>
+## Download all data for products with BSL 2 designations, with the most antibiotic resistance <a name="ex_bsl"></a>
 
-First, we will have to set up a good string to search on for deep_search()
+First, we will have to set up a string to search on for deep_search()
 
 ```
 ## This search works because we explicitly quote the key and value for "bsl".
@@ -926,23 +952,29 @@ bsl_hits=deep_search(text="'bsl': 2", output='table')
 
 ## Now we have a table called "bsl_hits".
 ## Lets sort some ABX columns and pull the top 5
-bsl_hits = bsl_hits.sort_values(by='amr_resistant')[0:5]
+bsl_hits['amr_resistant_gene_count']=bsl_hits['amr_resistant'].apply(
+    lambda x: 0 if x is None 
+    else len(x) if isinstance(x, list) and not (len(x) == 1 and '|' in x[0]) 
+    else len(x[0].split('|')) if isinstance(x, list) and len(x) == 1 and '|' in x[0] 
+    else len(x.split(',')) if ',' in x 
+    else len(x.split('|'))
+)
 
 ```
 Output:
 
 ```
->>> bsl_hits_sorted = bsl_hits.sort_values(by='amr_resistant')[0:5]
-    atcc_product_id                    name taxid         genome_id       assembly_id         collection  ...  antigenic_prop  drug_repository  genotype  isolation_new_web biosafety_level notes
-768        BAA-2114  Pseudomonas aeruginosa   287  a86969582da540ab  09ad0c9c1cc1487e  ATCC Bacteriology  ...            None              NaN      None      Sputum sample               2  None
-108        BAA-2790   Klebsiella pneumoniae   573  e995244fd8584d55  0f8527a3328b4cf6  ATCC Bacteriology  ...            None              NaN      None              Wound               2  None
-269        BAA-2783   Klebsiella pneumoniae   573  bdb0cfd03b5a4757  1f13c918db214992  ATCC Bacteriology  ...            None              NaN      None        Large colon               2  None
-276        BAA-2808            Serratia sp.   616  c2d57b369fcd41b0  ed513ca825f9484e  ATCC Bacteriology  ...            None              NaN      None              Urine               2  None
-271        BAA-2791       Proteus mirabilis   584  8ff2f99c4c264aed  ed57a07c1158434c  ATCC Bacteriology  ...            None              NaN      None              Urine               2  None
+>>> bsl_hits.sort_values(by='amr_resistant_gene_count',ascending=False)[0:5][['atcc_product_id','name','amr_resistant']]
 
-[5 rows x 44 columns]
+     atcc_product_id                     name                                      amr_resistant
+382         BAA-1799  Acinetobacter baumannii  [Ampicillin-Sulbactam, Cefazolin, Cefepime, Ce...
+456          BAA-196         Escherichia coli  [Ampicillin, Ampicillin-Sulbactam, Aztreonam, ...
+1800        BAA-1797  Acinetobacter baumannii  [Cefazolin, Cefotaxime, Ceftazidime, Ceftriaxo...
+1200        BAA-1794  Acinetobacter baumannii  [Cefazolin, Cefotaxime, Ceftazidime, Ceftriaxo...
+1202        BAA-3197   Pseudomonas aeruginosa  [Cefazolin, Cefepime, Cefotaxime, Ceftazidime,...
+
 ```
-Now, lets download these genbanks and annotations for each of the top 5 most ABX resistant BSL-2 items:
+Now, let's download these genbanks and annotations for each of the top 5 most ABX resistant BSL-2 items:
 
 ```
 for i, row in bsl_hits_sorted.iterrows():
@@ -997,11 +1029,11 @@ SUCCESS! File: /test/download_dir/Proteus_mirabilis_ATCC_BAA_2791.gbk now exists
 ## Download all the data for product 700822, in the new table format <a name="ex2"></a>
 First, we use `search_product` to download the assembly metadata from which we pull out the assembly id. Then, we download the assembly, annotations, and metadata.
 ```
->>> search_products_results=search_product(product_id="700822",output='table')
+>>> search_products_results = search_product(product_id="700822",output='table')
 >>> id = search_products_results.loc[0,'genome_id']
->>> assembly=download_assembly(id=id,output='dict')
->>> annotations=download_annotations(id=id,output='dict')
->>> metadata=download_metadata(id=id)
+>>> assembly = download_assembly(id=id,output='dict')
+>>> annotations = download_annotations(id=id,output='dict')
+>>> metadata = download_metadata(id=id)
 ```
 ```
 print("First 150 nts of each contig")
@@ -1048,6 +1080,7 @@ ONT data: {'N50': 30777, 'ambiguous_bases': 0, 'median_quality': 25, 'median_qua
 First, we use `deep_search` to download the assembly metadata for all items that fuzzy match "yersinia." Then, we pull out the assembly id for each and download the assembly, annotations, and metadata.
 ```
 match_list=deep_search(text="yersinia",fuzz_on='50',output='json')
+
 yersinia_data = {}
 for e in match_list[:3]:
   id = e['id']
@@ -1071,6 +1104,10 @@ for id in yersinia_data.keys():
 ```
 Output:
 ```
+2024-07-31 11:18:03,556 - INFO - API key has been found: 'testing'
+Fetched 4,890 genomes
+genomes visibility='public': 4,750
+
 First 150 nts of each contig
 >02048bb2e6674f9c_1 assembly_id="02048bb2e6674f9c" genome_id="099e5acebc284d19" atcc_catalog_number="ATCC 27729" species="Yersinia enterocolitica" contig_number="1" topology="circular"
 GTGTCACTTTCGCTTTGGCAGCAGTGTCTTGCCCGATTGCAGGATGAGTTACCTGCCACAGAATTTAGTATGTGGATACGCCCCTTACAGGCGGAACTGAGTGACAATACTCTGGCGCTTTACGCACCTAATCGTTTTGTACTGGACTGG
@@ -1117,8 +1154,8 @@ Harmon CL, Castlebury L, Boundy-Mills K, et al. Standards of Diagnostic Validati
 
 <a href="https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal"><img src="https://github.com/ATCC-Bioinformatics/genome_portal_api/blob/dev/images/SBC_Team_Photo_12Jul2024.jpg" alt="Clickable-Team_members_redirect" /></a>
 
-If you found a bug with this REST-API, would like new features, or have questions related to this GitHub, please fill out an [Issue Template](https://github.com/ATCC-Bioinformatics/genome_portal_api/tree/dev/.github/ISSUE_TEMPLATE) form if applicable, and post the [issues](https://github.com/ATCC-Bioinformatics/genome_portal_api/issues) section of this repository.
+If you found a bug with this REST-API, would like new features, or have questions related to this GitHub, please fill out an [Issue Template](https://github.com/ATCC-Bioinformatics/genome_portal_api/tree/dev/.github/ISSUE_TEMPLATE) form if applicable, and post it to the [issues](https://github.com/ATCC-Bioinformatics/genome_portal_api/issues) section of this repository.
 
-For questions, concerns, or anything ATCC Genome Portal related, please e-mail us at: `nextgen@atcc.org`  
+For questions, concerns, or anything ATCC® Genome Portal related, please e-mail us at: `nextgen@atcc.org`  
 
-For anything else, please reach out to the main ATCC Contact portal: [Contact ATCC](https://www.atcc.org/support/contact-us)
+For anything else, please reach out to the main ATCC® Contact portal: [Contact ATCC®](https://www.atcc.org/support/contact-us)
