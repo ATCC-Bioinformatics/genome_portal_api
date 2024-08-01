@@ -95,8 +95,9 @@ def load_all_metadata():
   ## Check to see if set as enviornment variable
   try:
     if global_genome_metadata:
-      logger.info(f"All genomes have been stored under the variable 'global_genome_metadata' ")
-      logger.info(f"If this is an error or you want to requery the genome, please run download_all_genomes()")
+      logger.info(f"All genomes have been stored under the variable 'global_genome_metadata'")
+      logger.info(f"You may need to run `global_genome_metadata=get_global_metadata()` to access this list")
+      logger.info(f"If this is an error or you want to requery the genomes, please run download_all_genomes()")
       return
     else:
       global_genome_metadata=download_all_genomes()
@@ -104,6 +105,7 @@ def load_all_metadata():
     global_genome_metadata=download_all_genomes()
     if global_genome_metadata:
       logger.info(f"All genomes have been stored under the variable 'global_genome_metadata' ")
+      logger.info(f"You may need to run `global_genome_metadata=get_global_metadata()` to access this list")
     return
 
 
@@ -449,7 +451,7 @@ def download_assembly(**kwargs):
     result = grab.read()
     data = json.loads(result)
     grab.close()
-    assembly_stage=None
+    assembly=None
     if 'url' not in data.keys():
       logger.warning(f"There does not appear to be a URL for Genome: {id}. Please verify and try again!")
       return
@@ -457,12 +459,12 @@ def download_assembly(**kwargs):
       logger.critical(membership_message)
       return
     if output in ['fasta','dict']:
-      while not assembly_stage:
+      while not assembly:
         assembly_stage = os.popen(f"curl \"{data['url']}\"")
-        if not assembly_stage:
+        assembly = assembly_stage.read()
+        assembly_obj = {}
+        if not assembly:
           time.sleep(2.5) # Allow 2 seconds per tmp URL generation
-      assembly = assembly_stage.read()
-      assembly_obj = {}
       for line in assembly.split("\n"):
         if ">" in line:
           header = line.strip()
@@ -492,11 +494,12 @@ def download_assembly(**kwargs):
                   filtered=line[line.find('assembly_id='):][13:29]
                   if filtered in str(assembly_obj):
                     logger.info("This file already exists, and the assembly version is the same...re-downloading!")
+                    break
                   else:
                     logger.info("You had a previous version of this genome, but we have updated the assembly version...downloading with assembly ID appended to name!")
                     incoming_id = assembly[assembly.find('assembly_id='):][13:29]
                     output_file_path = f'{output_file_path.strip(".fasta")}_{incoming_id}.fasta'
-                  continue
+                    break
               with open(output_file_path, 'w') as f: 
                 for key, value in assembly_obj.items():
                   print(key, file=f)

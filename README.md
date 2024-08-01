@@ -30,7 +30,8 @@
       - [Download metadata](#download_all_genomes_to_list)
    * [download_all_genomes](#download_all_genomes)  
    _pull the JSON metadata for ALL genomes_
-      - [download all genome metadata to a list](#download_all_genomes_to_list)
+      - [Download all genome metadata to a list](#download_all_genomes_to_list)
+      - [Convert this list to a human-readable table](#download_all_genomes_to_table)
       - [Convert list to GenomeID Indexing](#convert_to_genomeid)
    * [deep_search](#deep_search)  
    _search ALL genome metadata for a string or value (SUPPORTS FUZZY)_
@@ -70,7 +71,7 @@ You will need:
 # Installation <a name="installation"></a>
 ### Pip install via conda environment
 ```
-conda create -n "genome_portal_api"
+conda create -n "genome_portal_api" python=3.9
 conda activate genome_portal_api
 git clone https://github.com/ATCC-Bioinformatics/genome_portal_api.git
 pip install /path/to/downloaded/genome_portal_api_folder
@@ -170,6 +171,13 @@ This is like legendary mode...There is much more data behind each genome, but re
 * #### id:  
 
 Bread and butter! One of the most-used cases in the past API behavior, this output is strictly a list of IDs, so that each list entry is the ATCC® catalog number followed by the genomeID. ex( ['ATCC 10536:996d977f03724ce6', ...]). We advise using the id output type if you only need the ATCC® catalog numbers and their respective genome IDs.
+
+
+### -- Why can't I access the variable `global_genome_metadata`??  
+When this happens, please run the function `get_global_metadata()`. This will output the variable to stdOUT, but is also saving it to a the variable `global_genome_metadata`. Running this should work:
+```
+global_genome_metadata=get_global_metadata()
+```
 
 </details>  <br />
 
@@ -680,7 +688,10 @@ The detailed metadata can be downloaded as follows:
 
 This can be ran without prior knowledge of any associated metadata.  
 
-**This function defaults to storing all genomes to the variable `global_genome_metadata` as well as piping to stdOUT for variable storage**
+**This function defaults to storing all genomes to the variable `global_genome_metadata` as well as piping to stdOUT for variable storage. You may need to run the following line to extract this global variable**
+```
+global_genome_metadata=get_global_metadata()
+```
 
 <details markdown="1">
 <summary>Usage</summary>
@@ -705,7 +716,7 @@ This can be ran without prior knowledge of any associated metadata.
 <summary>Advanced</summary>
 
 ### Download all genome entries as list example: <a name="download_all_genomes_to_list"></a>
-Running the below code will generate a list of every genome's metadata. Because the output was assigned to a variable, it will store as the assigned variable `genomes` as well as `global_genome_metadata` by default.
+Running the below code will generate a list of every genome's metadata. Because the output was assigned to a variable, it will store as the assigned variable `genomes` as well as `global_genome_metadata` by default. 
 ```
 genomes=download_all_genomes()
 ```
@@ -728,6 +739,23 @@ Alternatively, you can create a secondary list of these genomes, now indexed by 
   '21846cfe916b4f18'
 
 ```
+
+### Convert entire genome lists into a table: <a name="download_all_genomes_to_table"></a>  
+Instead of a list of all genomes, one can convert the collection into a table like so!  
+
+If you wanted to do this from the global variable `global_genome_metadata`, you may need to run this first.
+```
+global_genome_metadata=get_global_metadata()
+```
+Otherwise, you can tabulate your list from the example above, or any list of genomic metadata like this:
+```
+final_table=tabulate(genomes)
+
+-or-
+
+final_table=tabulate(global_genome_metadata)
+```
+
 
 </details></details>
 
