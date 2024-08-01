@@ -1,1 +1,1 @@
-from .genome_portal_api import search_fuzzy,download_catalogue,download_all_genomes,download_metadata,download_annotations,download_assembly,search_text,search_product
+from .genome_portal_api import  set_global_api, get_global_metadata, get_global_apikey, set_global_api, load_all_metadata, flatten_dict, tabulate,  json_search, search_product, search_text, deep_search,  download_assembly, download_annotations, download_all_genomes, download_metadata, get_genomes, iter_paginated_endpoint, convert_to_genomeid, format_qc
