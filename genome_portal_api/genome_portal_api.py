@@ -451,7 +451,7 @@ def download_assembly(**kwargs):
     result = grab.read()
     data = json.loads(result)
     grab.close()
-    assembly=None
+    assembly='The specified key does not exist'
     if 'url' not in data.keys():
       logger.warning(f"There does not appear to be a URL for Genome: {id}. Please verify and try again!")
       return
@@ -459,12 +459,16 @@ def download_assembly(**kwargs):
       logger.critical(membership_message)
       return
     if output in ['fasta','dict']:
-      while not assembly:
+      counter=0
+      while "The specified key does not exist" in assembly and counter <=10:
         assembly_stage = os.popen(f"curl \"{data['url']}\"")
         assembly = assembly_stage.read()
         assembly_obj = {}
-        if not assembly:
+        if "The specified key does not exist" in assembly:
           time.sleep(2.5) # Allow 2 seconds per tmp URL generation
+          counter += 1
+      if "The specified key does not exist" in assembly:
+        logger.warning("The URL to download this file appears to be broken. Please try again later!")
       for line in assembly.split("\n"):
         if ">" in line:
           header = line.strip()
