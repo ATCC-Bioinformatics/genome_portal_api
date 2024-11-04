@@ -61,7 +61,7 @@ You will need:
     * As of May 1, 2024, a supporting membership is required to access the REST API
     * To purchase a suporting membership, learn more [here](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal)
 2. An API Key. This is required for all scripts.
-    * A (free) [One Codex](https://app.onecodex.com/) account and [Supporting Membership to the ATCC Genome Portal](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal) is required to obtain an API Key.
+    * A (free) [One Codex](https://app.onecodex.com/) account and [Supporting Membership](https://www.atcc.org/applications/reference-quality-data/discover-the-atcc-genome-portal) to the ATCC Genome Portal is required to obtain an API Key.
     * Log in or create an account on https://app.onecodex.com/ and https://genomes.atcc.org      
     * Proceed to https://genomes.atcc.org/profile 
     * Click on “Copy API Key”
