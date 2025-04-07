@@ -8,6 +8,7 @@
 * [Setup](#Setup)
     - [Setting an API key](#setting_api_key)
 * [Tips and FAQ](#FAQ)
+* [Explore Some ATCC Genomes](#explore_genomes)
 * [Functions](#functions)  
    * [search_product](#search_product)   
    _find a genome by ATCC® Product ID_
@@ -52,8 +53,9 @@
 This repository serves as a collection of python scripts that can be used to access the ATCC® Genome Portal through the One Codex REST-API.   
 
 Accessing the ATCC® Genome Portal through the API provides **extensively** more data than can be seen on the ATCC® Genome Portal GUI. [While One Codex documentation](https://docs.onecodex.com/en/articles/5812163-atcc-genome-portal-api-guide) exists to detail the exact endpoints, this repo serves as prebuilt and formatted wrappers to navigate the REST API. All scripts were created and tested using Python version 3.9. 
-<!-- Scripts have been tested in Google Colab using Python 3.9. See the demo python notebook for detailed walkthroughs: \
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/11hBTFeM4SzHKxPvfiIlwGQHW0YZelfgY?usp=sharing) -->
+
+Scripts have been tested in Google Colab using Python 3.9. See the demo Jupyter notebook for detailed walkthroughs: \
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1U6FXlWY28MeYi3u0Cu5964-Q9YOOPcSF?usp=sharing)
 
 # Getting Started <a name="getting-started"></a>
 You will need:
@@ -179,6 +181,26 @@ When this happens, please run the function `get_global_metadata()`. This will ou
 global_genome_metadata=get_global_metadata()
 ```
 
+</details>  <br />
+
+
+# Explore some ATCC Genomes <a name="explore_genomes"></a>  
+
+While downloading genomes is now limited to Supporting Members, or users who have purchased the corresponding strain, we have made some genomes publicly-available for all ATCC Genome Portal users. These publicly-available genomes are also accessible through the API with use of an API key. Please review "Getting Started" for more information on obtaining an API key. The available genomes are in the table below.  
+
+| ATCC Product                                                  | Genome ID        | Find the genome here                               |  
+|---------------------------------------------------------------|------------------|----------------------------------------------------|
+| Severe acute respiratory syndrome coronavirus 2 **ATCC® VR-1986** | ec8c390b482542ee | https://genomes.atcc.org/genomes/ec8c390b482542ee  |
+| Human adenovirus 5 **ATCC® VR-5**                                 | 9fdf2eb2010942a7 | https://genomes.atcc.org/genomes/9fdf2eb2010942a7  |
+| Escherichia coli bacteriophage MS2 **ATCC® 15597-B1**             | 231e1b568ee14e91 | https://genomes.atcc.org/genomes/231e1b568ee14e91  |
+| Staphylococcus aureus **ATCC® 6538**                              | 79f43b45f79b4abc | https://genomes.atcc.org/genomes/79f43b45f79b4abc  |
+| Escherichia coli **ATCC® 8739**                                   | b9d91f150db449de | https://genomes.atcc.org/genomes/b9d91f150db449de  |
+| Exiguobacterium indicum **ATCC® TSD-220**                         | 080e20c7507b453b | https://genomes.atcc.org/genomes/080e20c7507b453b  |
+| Moraxella catarrhalis **ATCC® 23246**                             | 6547647b5a0f460d | https://genomes.atcc.org/genomes/6547647b5a0f460d  |
+| Candida albicans **ATCC® 10231**                                  | 0fdc61a44a8f4582 | https://genomes.atcc.org/genomes/0fdc61a44a8f4582  |
+| Aspergillus brasiliensis **ATCC® 16404**                          | 36efe8d13467435c | https://genomes.atcc.org/genomes/36efe8d13467435c  |
+
+You can use these genomes to explore the types of data that you can expect to receive from various genomes!
 </details>  <br />
 
 # Functions <a name="functions"></a>
