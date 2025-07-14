@@ -8,7 +8,7 @@ def readme():
 
 setup(
     name="genome_portal_api",
-    version="1.0.0",
+    version="1.1.0",
     description="Python package to access and download"
     "data from ATCC's Genome Portal",
     long_description=readme(),

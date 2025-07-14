@@ -12,6 +12,7 @@ from typing import Any, Dict, Generator, List, Optional
 from collections import Counter
 from dateutil.parser import parse
 import pandas as pd
+import subprocess
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -864,3 +865,64 @@ def format_qc(dataframe):
   #new_df=new_df.sort_values(by='genome_page_creation',ascending=False)
   
   return new_df
+
+def retrieve_datasets_json(genome_id, apikey):
+    """Retrieves jsons with datasets metadata """
+    try:
+        cmd = f'curl -H "X-API-Key: {apikey}" https://genomes.atcc.org/api/genomes/{genome_id}/datasets 2> /dev/null'
+        result = subprocess.run(cmd, capture_output=True, shell=True)
+        data = json.loads(result.stdout)
+    except Exception as e:
+        return ["error"]
+    return(data)
+
+def download_methylation(**kwargs):
+    if "id" in kwargs:
+        genome_id = kwargs['id']
+    else:
+        print("""
+        download_methylation() is function to download the methylation bed zip file on the ATCC Genome Portal. The bed files can be downloaded, or output directly to stdout. \n
+        
+        --------- USAGE ---------
+        Required arguments:
+        \t id = <str> \n \t\t An ATCC Genome ID (https://genomes.atcc.org/genomes/<genomeid>) \n     
+        
+        Optional arguments:
+        \t download_dir = [Path <str>] \n \t\t A directory to download the fasta file to. The fasta file will be named automatically.
+        \t api_key = <str> \n \t\t Your Genome Portal APIKey [(global_api_key) | overwrite if provided ] \n
+
+        EXAMPLES:
+        \t download_methylation(id='c933744d53304798', download_dir="/directory/for/download/") downloads methylation zip file to provided path
+        """)
+        return   
+    membership_message="API access to the ATCC Genome Portal requires a supporting membership. Please visit https://genomes.atcc.org/plans to subscribe."
+    kwarg_message="Whoops, make sure you are providing all the correct arguments and choices!"
+    if "api_key" in kwargs: # check if api key is provided
+        apikey = kwargs['api_key']
+    else:
+        try:
+            apikey = global_api_key
+        except NameError:
+            apikey = get_global_apikey()
+    file_path = kwargs["download_dir"] if 'download_dir' in kwargs else "No file path provided"    
+    try:
+        dataset = retrieve_datasets_json(genome_id, apikey)
+        if len(dataset) == 0:
+            return f"No methylation data for {genome_id} is available"
+        if dataset == ["error"]:
+            return f"Ran into unexpected errors while attempting to download methylation data for {genome_id}"
+        if isinstance(dataset, dict) and "message" in dataset.keys():
+            return "API access to the ATCC Genome Portal requires a premium subscription. Please visit https://genomes.atcc.org/plans to subscribe."
+        
+        dataset_id = dataset[0]['id']
+        cmd = f'curl -H "X-API-Key: {apikey}" https://genomes.atcc.org/api/datasets/{dataset_id}/download 2> /dev/null'
+        result = subprocess.run(cmd, capture_output=True, shell=True) # this runs the command to return the json that contains the download_url
+        download_data = json.loads(result.stdout)
+        filename = f"{genome_id}_methylation_data.zip"
+        if file_path != "No file path provided":
+            filename = f"{file_path}/{filename}"
+        
+        os.system(f"wget \"{download_data['url']}\" -O {filename}")
+    except Exception as e:
+        print(e)
+        return f"Ran into unexpected errors while attempting to download methylation data for {genome_id}"
