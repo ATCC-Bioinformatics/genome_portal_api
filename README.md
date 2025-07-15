@@ -940,7 +940,7 @@ This function is currently only applicable for select bacterial genomes, see her
     > download_methylation(id='genomeid', download_dir="/directory/for/download/") downloads methylation zip file to provided path
 ```
 
-</details>
+<details>
 <summary>Advanced</summary>
 
 ### Download methylation example <a name="download_methylation_example"></a>
@@ -959,7 +959,8 @@ This code will unzip the zip file to /directory/for/download/final_dir. The unzi
 10015_README.json
 10015_5mCG_5hmCG_mbed.bed
 ```
-</details></details> <br />  
+</details></details>  
+<br />  
 <br /> 
 
 
