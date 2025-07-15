@@ -41,9 +41,9 @@
    * [tabulate](#tabulate)  
     _convert a list of genome dictionaries to a formatted table_
         - [Convert any list to a table](#tabulate_example)
-    * [download_methylation](download_methylation)  
+    * [download_methylation](#download_methylation)  
     _download methylation data for select bacterial genomes_
-        - [Download methylation](#download_methylation_example)
+        - [Download methylation example](#download_methylation_example)
 * [Cookbook](#cookbook)
    * [Download all the data for all *E. coli* assemblies](#ex1)
    * [Download all the data for 5 BSL-2 *E. coli* assemblies with the most antibiotic resistance](#ex_bsl)
