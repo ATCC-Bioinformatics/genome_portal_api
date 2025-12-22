@@ -914,7 +914,16 @@ def download_methylation(**kwargs):
         if isinstance(dataset, dict) and "message" in dataset.keys():
             return "API access to the ATCC Genome Portal requires a premium subscription. Please visit https://genomes.atcc.org/plans to subscribe."
         
-        dataset_id = dataset[0]['id']
+        dataset_id = "none"
+        print(dataset)
+        for i in dataset:
+            if i['type'] == "epigenome":
+                dataset_id = i['id']
+        
+        if dataset_id == "none":
+            return f"No methylation data for {genome_id} is available"
+
+        # dataset_id = dataset[0]['id']
         cmd = f'curl -H "X-API-Key: {apikey}" https://genomes.atcc.org/api/datasets/{dataset_id}/download 2> /dev/null'
         result = subprocess.run(cmd, capture_output=True, shell=True) # this runs the command to return the json that contains the download_url
         download_data = json.loads(result.stdout)
