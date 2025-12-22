@@ -876,6 +876,7 @@ def retrieve_datasets_json(genome_id, apikey):
         return ["error"]
     return(data)
 
+
 def download_methylation(**kwargs):
     if "id" in kwargs:
         genome_id = kwargs['id']
@@ -915,7 +916,6 @@ def download_methylation(**kwargs):
             return "API access to the ATCC Genome Portal requires a premium subscription. Please visit https://genomes.atcc.org/plans to subscribe."
         
         dataset_id = "none"
-        print(dataset)
         for i in dataset:
             if i['type'] == "epigenome":
                 dataset_id = i['id']
