@@ -882,17 +882,18 @@ def download_methylation(**kwargs):
         genome_id = kwargs['id']
     else:
         print("""
-        download_methylation() is function to download the methylation bed zip file on the ATCC Genome Portal. The bed files can be downloaded, or output directly to stdout. \n
+        download_methylation() is a function to download the methylation bed zip file for select bacterial genomes on the ATCC Genome Portal. \n
         
         --------- USAGE ---------
         Required arguments:
         \t id = <str> \n \t\t An ATCC Genome ID (https://genomes.atcc.org/genomes/<genomeid>) \n     
         
         Optional arguments:
-        \t download_dir = [Path <str>] \n \t\t A directory to download the fasta file to. The fasta file will be named automatically.
+        \t download_dir = [Path <str>] \n \t\t A directory to download the methylation zip file to. The zip file will be named automatically.
         \t api_key = <str> \n \t\t Your Genome Portal APIKey [(global_api_key) | overwrite if provided ] \n
 
         EXAMPLES:
+        \t download_methylation(id='c933744d53304798') downloads methylation zip file to working directory
         \t download_methylation(id='c933744d53304798', download_dir="/directory/for/download/") downloads methylation zip file to provided path
         """)
         return   

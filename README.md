@@ -41,6 +41,9 @@
    * [tabulate](#tabulate)  
     _convert a list of genome dictionaries to a formatted table_
         - [Convert any list to a table](#tabulate_example)
+    * [download_methylation](#download_methylation)  
+    _download methylation data for select bacterial genomes_
+        - [Download methylation example](#download_methylation_example)
 * [Cookbook](#cookbook)
    * [Download all the data for all *E. coli* assemblies](#ex1)
    * [Download all the data for 5 BSL-2 *E. coli* assemblies with the most antibiotic resistance](#ex_bsl)
@@ -908,8 +911,58 @@ By providing a list of genomes, `tabulate()` will then convert the inputed liste
 
 [4890 rows x 44 columns]
 ```
-</details></details> <br />  
- <br />  
+</details></details> 
+
+## download_methylation() <a name="download_methylation"></a>
+
+**`download_methylation()` is a function to download the methylation data for a given genome on the portal.**  
+This function is currently only applicable for select bacterial genomes, see here for full list. This function takes a genome id as input and will download the associated methylation data as a zip file to the working directory. If a download_dir argument is given, the zip file will be downloaded to the given directory.
+
+<details markdown="1">
+<summary>Usage</summary>
+
+```
+  download_methylation() is a function to download the methylation bed zip file for select bacterial genomes on the ATCC Genome Portal.
+  
+  --------- USAGE ---------
+  Required arguments:
+    id = <str>
+          An ATCC® Genome ID (https://genomes.atcc.org/genome<genomeid>)          
+  
+  Optional arguments:
+    download_dir = [Path <str>]
+          A directory to download the methylation zip file to. The zip file will be named automatically.
+    api_key = <str> 
+          Your Genome Portal APIKey [(global_api_key) | overwrite if provided ] 
+  
+  EXAMPLES:
+    > download_methylation(id='genomeid') downloads methylation zip file to working directory
+    > download_methylation(id='genomeid', download_dir="/directory/for/download/") downloads methylation zip file to provided path
+```
+
+<details>
+<summary>Advanced</summary>
+
+### Download methylation example <a name="download_methylation_example"></a>
+```
+>>> download_methylation(id='c933744d53304798', download_dir="/directory/for/download/")
+```
+This will download the available methylation data for genome id 'c933744d53304798' to the following directory: /directory/for/download/. Once downloaded, the data will need to be unzipped. To do this through Python:
+
+```
+import zipfile
+with zipfile.ZipFile("/directory/for/download/c933744d53304798_methylation_data.zip","r") as zip_ref:
+    zip_ref.extractall("/directory/for/download/final_dir")
+```
+This code will unzip the zip file to /directory/for/download/final_dir. The unzipped contents should included a README.json and up to three BED files (one for each Dorado methylation model). For this example, the zip file contents should look like this:
+```
+10015_README.json
+10015_5mCG_5hmCG_mbed.bed
+```
+</details></details>  
+<br />  
+<br /> 
+
 
 # Cookbook <a name="cookbook"></a>
 
