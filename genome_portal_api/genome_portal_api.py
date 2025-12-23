@@ -876,6 +876,7 @@ def retrieve_datasets_json(genome_id, apikey):
         return ["error"]
     return(data)
 
+
 def download_methylation(**kwargs):
     if "id" in kwargs:
         genome_id = kwargs['id']
@@ -915,7 +916,14 @@ def download_methylation(**kwargs):
         if isinstance(dataset, dict) and "message" in dataset.keys():
             return "API access to the ATCC Genome Portal requires a premium subscription. Please visit https://genomes.atcc.org/plans to subscribe."
         
-        dataset_id = dataset[0]['id']
+        dataset_id = "none"
+        for i in dataset:
+            if i['type'] == "epigenome":
+                dataset_id = i['id']
+        
+        if dataset_id == "none":
+            return f"No methylation data for {genome_id} is available"
+
         cmd = f'curl -H "X-API-Key: {apikey}" https://genomes.atcc.org/api/datasets/{dataset_id}/download 2> /dev/null'
         result = subprocess.run(cmd, capture_output=True, shell=True) # this runs the command to return the json that contains the download_url
         download_data = json.loads(result.stdout)
@@ -927,3 +935,4 @@ def download_methylation(**kwargs):
     except Exception as e:
         print(e)
         return f"Ran into unexpected errors while attempting to download methylation data for {genome_id}"
+
