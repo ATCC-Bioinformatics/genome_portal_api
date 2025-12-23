@@ -924,7 +924,6 @@ def download_methylation(**kwargs):
         if dataset_id == "none":
             return f"No methylation data for {genome_id} is available"
 
-        # dataset_id = dataset[0]['id']
         cmd = f'curl -H "X-API-Key: {apikey}" https://genomes.atcc.org/api/datasets/{dataset_id}/download 2> /dev/null'
         result = subprocess.run(cmd, capture_output=True, shell=True) # this runs the command to return the json that contains the download_url
         download_data = json.loads(result.stdout)
@@ -936,3 +935,4 @@ def download_methylation(**kwargs):
     except Exception as e:
         print(e)
         return f"Ran into unexpected errors while attempting to download methylation data for {genome_id}"
+
